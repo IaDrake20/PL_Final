@@ -1,8 +1,8 @@
-mod Parser;
-mod Lexer;
-mod Tree;
-mod Token;
-mod CLI;
+mod parser;
+mod lexer;
+mod parse_tree;
+mod token;
+mod cli;
 
 fn main() {
 
