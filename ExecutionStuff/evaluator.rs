@@ -6,8 +6,25 @@ use crate::frame::Frame;
 use crate::tree::ExprNode;
 use crate::value::Value;
 
-// used for mathematical or boolean algebra statements to find final value
-    // more functions will have to be added here for other mathematical and logical operations
+#[derive(Debug, Clone)]
+enum ArithmeticOp {
+    Add,
+    Sub,
+    Mul,
+    Div
+}
+
+#[derive(Debug, Clone)]
+enum RelationalOp {
+    Equal,
+    LessThan,
+    GreaterThan,
+    NotEqual,
+    LessThanEqual,
+    GreaterThanEqual,
+}
+
+
 
 pub struct Evaluator {
 
@@ -26,411 +43,103 @@ impl Evaluator {
             ExprNode::Add(expr_a, expr_b) => {
                 let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
                 let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
-                Self::add(value_a, value_b)
+                Self::arithmetic(value_a, value_b, ArithmeticOp::Add)
+            }
+            ExprNode::Sub(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::arithmetic(value_a, value_b, ArithmeticOp::Sub)
+            }
+            ExprNode::Mul(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::arithmetic(value_a, value_b, ArithmeticOp::Mul)
+            }
+            ExprNode::LessThan(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::LessThan)
             }
             ExprNode::Call(name, rc_exprs) => {
                 println!("[debug] evaluating call '{name}'");
                 match rc_frame.borrow().lookup_global(name) {
                     Value::Func(rc_func, argc) => {
                         assert_eq!(argc,rc_exprs.len());
+
                         let mut arguments = vec![];
                         for rc_expr in rc_exprs {
                             let arg = Self::evaluate(rc_expr.clone(), rc_frame.clone());
                             arguments.push(arg);
                         }
-                        Executor::execute_function(rc_func, rc_frame.clone(), arguments)
+
+                        if let Some(globals) = rc_frame.borrow().get_globals() {
+                            Executor::execute_function(rc_func, globals, arguments)
+                        } else {
+                            panic!("Can't find globals in current frame!");
+                        }
                     }
                     _ => {
-                        println!("[warn] function '{name}' not found");
-                        Value::Nil
+                        panic!("Can't find function '{name}' in globals!");
                     }
                 }
             }
         }
     }
 
-    fn add(value_a: Value, value_b: Value) -> Value {
+    fn arithmetic(value_a: Value, value_b: Value, op : ArithmeticOp) -> Value {
         match value_a {
-            Value::Nil => { Value::Nil }
-            Value::Bool(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(if a {1} else {0} + if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(if a {1} else {0} + b) }
-                    Value::F32(b) => { Value::F32(if a {1} else {0} + b) }
-                    Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
+            Value::Nil => { panic!("Left operand of '{op:?}' is Nil!"); }
+            Value::Bool(a) => { panic!("Left operand of '{op:?}' is Bool!"); }
             Value::I32(a) => {
                 match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(a + if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(a + b) }
-                    Value::F32(b) => { Value::F32(a + b) }
-                    Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
+                    Value::Nil => { panic!("Right operand of '{op:?}' is Nil!"); }
+                    Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
+                    Value::I32(b) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::I32(a + b) }
+                            ArithmeticOp::Sub => { Value::I32(a - b) }
+                            ArithmeticOp::Mul => { Value::I32(a * b) }
+                            ArithmeticOp::Div => { Value::I32(a / b) }
+                        }
+                    }
+                    Value::F32(_) => { todo!() }
+                    Value::Chars(_) => { todo!() }
+                    Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
                 }
             }
-            Value::F32(a) => {match value_b {
-                Value::Nil => { Value::Nil }
-                Value::Bool(b) => { Value::I32(a + if b {1} else {0}) }
-                Value::I32(b) => { Value::F32(a + b) }
-                Value::F32(b) => { Value::F32(a + b) }
-                Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                _ => { Value::Nil }
-            }}
-            Value::Chars(a) => {match value_b {
-                Value::Nil => { Value::Nil }
-                Value::Bool(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                Value::I32(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                Value::F32(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                _ => { Value::Nil }
-            }}
-            Value::Func(_, _) => { todo!() } 
+            Value::F32(_) => { todo!() }
+            Value::Chars(_) => { todo!() }
+            Value::Func(_, _) => { panic!("Left operand of '{op:?}' is Func!"); }
         }
     }
 
-    fn subtract(value_a: Value, value_b: Value) -> Value {
+    fn relational(value_a: Value, value_b: Value, op : RelationalOp) -> Value {
         match value_a {
-            Value::Nil => { Value::Nil }
-            Value::Bool(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(if a {1} else {0} - if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(if a {1} else {0} - b) }
-                    Value::F32(b) => { Value::F32(if a {1} else {0} - b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
+            Value::Nil => { panic!("Left operand of '{op:?}' is Nil!"); }
+            Value::Bool(a) => { panic!("Left operand of '{op:?}' is Bool!"); }
             Value::I32(a) => {
                 match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(a - if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(a - b) }
-                    Value::F32(b) => { Value::F32(a - b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
+                    Value::Nil => { panic!("Right operand of '{op:?}' is Nil!"); }
+                    Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
+                    Value::I32(b) => {
+                        match op {
+                            RelationalOp::Equal => { Value::Bool(a == b) }
+                            RelationalOp::LessThan => { Value::Bool(a < b) }
+                            RelationalOp::GreaterThan => { Value::Bool(a > b) }
+                            RelationalOp::NotEqual => { Value::Bool(a != b) }
+                            RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
+                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
+                        }
+                    }
+                    Value::F32(_) => { todo!() }
+                    Value::Chars(_) => { todo!() }
+                    Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
                 }
             }
-            Value::F32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(a - if b {1} else {0}) }
-                    Value::I32(b) => { Value::F32(a - b) }
-                    Value::F32(b) => { Value::F32(a - b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-            }}
-            Value::Chars(a) => {todo!()}
-            Value::Func(_, _) => { todo!() } 
+            Value::F32(_) => { todo!() }
+            Value::Chars(_) => { todo!() }
+            Value::Func(_, _) => { panic!("Left operand of '{op:?}' is Func!"); }
         }
     }
-    
-    fn multiply(value_a: Value, value_b: Value) -> Value {
-        match value_a {
-            Value::Nil => { Value::Nil }
-            Value::Bool(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(if a {1} else {0} * if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(if a {1} else {0} * b) }
-                    Value::F32(b) => { Value::F32(if a {1} else {0} * b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::I32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(a * if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(a * b) }
-                    Value::F32(b) => { Value::F32(a * b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::F32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(a * if b {1} else {0}) }
-                    Value::I32(b) => { Value::F32(a * b) }
-                    Value::F32(b) => { Value::F32(a * b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-            }}
-            Value::Chars(a) => {todo!()}
-            Value::Func(_, _) => { todo!() } 
-        }
-    }
-
-    fn divide(value_a: Value, value_b: Value) -> Value {
-        match value_a {
-            Value::Nil => { Value::Nil }
-            Value::Bool(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(if a {1} else {0} / if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(if a {1} else {0} / b) }
-                    Value::F32(b) => { Value::F32(if a {1} else {0} / b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::I32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(a / if b {1} else {0}) }
-                    Value::I32(b) => { Value::I32(a / b) }
-                    Value::F32(b) => { Value::F32(a / b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::F32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::I32(a / if b {1} else {0}) }
-                    Value::I32(b) => { Value::F32(a / b) }
-                    Value::F32(b) => { Value::F32(a / b) }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-            }}
-            Value::Chars(a) => {todo!()}
-            Value::Func(_, _) => { todo!() } 
-        }
-    }
-
-    fn and(value_a: Value, value_b: Value) -> Value {
-        match value_a {
-            Value::Nil => { Value::Nil }
-            Value::Bool(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::Bool(a & b) }
-                    Value::I32(b) => { 
-                        if(b == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            return Value::Bool(a);
-                        }
-                    }
-                    Value::F32(b) => { 
-                        if(b == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            return Value::Bool(a);
-                        }
-                    }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::I32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { 
-                        if(a == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            return Value::Bool(b);
-                        }
-                    }
-                    Value::I32(b) => { 
-                        if(a == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            if(b == 0){
-                                return Value::Bool(false);
-                            }
-                            else {
-                                return Value::Bool(true);
-                            }
-                        }
-                    }
-                    Value::F32(b) => { 
-                        if(a == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            if(b == 0){
-                                return Value::Bool(false);
-                            }
-                            else {
-                                return Value::Bool(true);
-                            }
-                        }
-                    }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::F32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { 
-                        if(a == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            return Value::Bool(b);
-                        }
-                    }
-                    Value::I32(b) => { 
-                        if(a == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            if(b == 0){
-                                return Value::Bool(false);
-                            }
-                            else {
-                                return Value::Bool(true);
-                            }
-                        }
-                    }
-                    Value::F32(b) => { 
-                        if(a == 0){
-                            return Value::Bool(false);
-                        }
-                        else {
-                            if(b == 0){
-                                return Value::Bool(false);
-                            }
-                            else {
-                                return Value::Bool(true);
-                            }
-                        }
-                    }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::Chars(a) => {todo!()}
-            Value::Func(_, _) => { todo!() } 
-        }
-    }
-    
-    fn or(value_a: Value, value_b: Value) -> Value {
-        match value_a {
-            Value::Nil => { Value::Nil }
-            Value::Bool(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { Value::Bool(a | b) }
-                    Value::I32(b) => { 
-                        if(b == 0){
-                            return Value::Bool(a);
-                        }
-                        else {
-                            return Value::Bool(true);
-                        }
-                    }
-                    Value::F32(b) => { 
-                        if(b == 0){
-                            return Value::Bool(a);
-                        }
-                        else {
-                            return Value::Bool(true);
-                        }
-                    }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::I32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { 
-                        if(a == 0){
-                            return Value::Bool(b);
-                        }
-                        else {
-                            return Value::Bool(true);
-                        }
-                    }
-                    Value::I32(b) => { 
-                        if(a != 0){
-                            return Value::Bool(true);
-                        }
-                        else {
-                            if(b != 0){
-                                return Value::Bool(true);
-                            }
-                            else {
-                                return Value::Bool(false);
-                            }
-                        }
-                    }
-                    Value::F32(b) => { 
-                        if(a != 0){
-                            return Value::Bool(true);
-                        }
-                        else {
-                            if(b != 0){
-                                return Value::Bool(true);
-                            }
-                            else {
-                                return Value::Bool(false);
-                            }
-                        }
-                    }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::F32(a) => {
-                match value_b {
-                    Value::Nil => { Value::Nil }
-                    Value::Bool(b) => { 
-                        if(a == 0){
-                            return Value::Bool(b);
-                        }
-                        else {
-                            return Value::Bool(true);
-                        }
-                    }
-                    Value::I32(b) => { 
-                        if(a != 0){
-                            return Value::Bool(true);
-                        }
-                        else {
-                            if(b != 0){
-                                return Value::Bool(true);
-                            }
-                            else {
-                                return Value::Bool(false);
-                            }
-                        }
-                    }
-                    Value::F32(b) => { 
-                        if(a != 0){
-                            return Value::Bool(true);
-                        }
-                        else {
-                            if(b != 0){
-                                return Value::Bool(true);
-                            }
-                            else {
-                                return Value::Bool(false);
-                            }
-                        }
-                    }
-                    //Value::Chars(b) => { Value::String(a + b.to_string().as_mut_str()) }
-                    _ => { Value::Nil }
-                }
-            }
-            Value::Chars(a) => {todo!()}
-            Value::Func(_, _) => { todo!() } 
-        }
-    }
-
-    
 
 }

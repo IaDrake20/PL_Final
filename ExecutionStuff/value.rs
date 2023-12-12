@@ -3,7 +3,7 @@ use crate::tree::{FuncNode};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
-pub enum Value { // token standin. func holding something is new
+pub enum Value {
     Nil,
     Bool(bool),
     I32(i32),

@@ -2,7 +2,7 @@
 
 use std::rc::Rc;
 use crate::machine::Machine;
-use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
+use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
 use crate::value::Value;
 
 mod tree;
@@ -14,11 +14,10 @@ mod frame;
 mod value;
 mod evaluator;
 
-// The primary files that actually do a thing are the main, machine, analyzer, and executor. everything else is supporting those. 
 
 /*
 
-The test AST corresponds to following code:
+// The test AST corresponds to program0:
 
 let count;
 let help;
@@ -37,27 +36,21 @@ func main(argc) [
 
 
  */
-
-// 1) how does one translate a parse tree into the a program as written in the below function
-
-
-fn grow_ast_program0() -> Rc<ProgramNode> { // fixed ast for above string -> most likely needs scrapped in place of parser, but may be useful in understanding how to implement
-                                                // he mentions in the instructions that the parser need fsm, recursive descent, and pratt. correct me if im wrong, but my parser already has that right?
-                                                    // like wouldnt we just import the existing parser and the lexical and syntactical analysis are just done?
+fn grow_ast_program0() -> Rc<ProgramNode> {
     let mut program = ProgramNode::new();
 
     // global variables
-    let let_count = LetNode::new( "count".to_string(), Value::Nil); // when a let node is added, manually push it to the vector in the program node, it does not appear to be placed on the program node
+    let let_count = LetNode::new( "count".to_string(), Value::Nil);
     let let_help =  LetNode::new( "help".to_string(), Value::Nil);
-    program.let_nodes.push(Rc::new(let_count)); // the let_nodes vector is primarily used to make sure variables were declared before being used (Semantical Analysis)
-    program.let_nodes.push(Rc::new(let_help));      // unsure if its already implemented
+    program.let_nodes.push(Rc::new(let_count));
+    program.let_nodes.push(Rc::new(let_help));
 
     // add function
     let mut parameters_add = vec![];
     parameters_add.push(Parameter::new("a".to_string()));
     parameters_add.push(Parameter::new("b".to_string()));
 
-    let mut block_add = BlockNode::new();  // the blockNode is the interior of the function node
+    let mut block_add = BlockNode::new();
     let stmtAdd1 = StmtNode::Return(
         ReturnNode::new(ExprNode::Add(
             Rc::new(ExprNode::Var("a".to_string())),
@@ -71,8 +64,7 @@ fn grow_ast_program0() -> Rc<ProgramNode> { // fixed ast for above string -> mos
         parameters_add,
         block_add);
 
-    program.func_nodes.push(Rc::new(func_add));  // when a func node is added, manually push it to the vector in the program node 
-                                                    // the func_nodes vector will be used for calling functions from anywhere else in code. inherently allows recursion (i think)
+    program.func_nodes.push(Rc::new(func_add));
 
     // main function
     let mut parameters_main = vec![];
@@ -105,7 +97,7 @@ fn grow_ast_program0() -> Rc<ProgramNode> { // fixed ast for above string -> mos
     block_main.statements.push(Rc::new(stmtMain4));
     block_main.statements.push(Rc::new(stmtMain5));
 
-    let func_main = FuncNode::new( 
+    let func_main = FuncNode::new(
         "main".to_string(),
         parameters_main,
         block_main);
@@ -117,11 +109,125 @@ fn grow_ast_program0() -> Rc<ProgramNode> { // fixed ast for above string -> mos
 }
 
 
+/*
+
+// The test AST corresponds to program1:
+
+let count;
+
+func factorial_recursion(n) [
+    print n;
+    if n < 2 [
+        return 1;
+    ] else [
+        return n * factorial_recursion(n-1);
+    ]
+]
+
+func main(argc) [
+    let result;
+    result = factorial_recursion(5);
+    print result;
+]
+
+
+ */
+fn grow_ast_program1() -> Rc<ProgramNode> {
+    let mut program = ProgramNode::new();
+
+    // global variables
+    let let_count = LetNode::new( "count".to_string(), Value::Nil);
+    program.let_nodes.push(Rc::new(let_count));
+
+    // func factorial_recursion()
+    let func_factorial_recursion = {
+        let mut params = vec![];
+        params.push(Parameter::new("n".to_string()));
+
+        let stmt_print = StmtNode::Print(PrintNode::new(
+            ExprNode::Var("n".to_string())
+        ));
+
+        let cond_if = ExprNode::LessThan(
+            Rc::new(ExprNode::Var("n".to_string())),
+            Rc::new( ExprNode::Val(Value::I32(2)))
+        );
+
+        let mut block_if_true = BlockNode::new();
+        block_if_true.statements.push(Rc::new(StmtNode::Return(
+            ReturnNode::new(ExprNode::Var("n".to_string()))
+        )));
+
+        let mut block_if_false = BlockNode::new();
+        block_if_false.statements.push( Rc::new(StmtNode::Return(
+            ReturnNode::new(ExprNode::Mul(
+                Rc::new(ExprNode::Var("n".to_string())),
+                Rc::new(ExprNode::Call(
+                    "factorial_recursion".to_string(),
+                    vec![Rc::new(ExprNode::Sub(
+                        Rc::new(ExprNode::Var("n".to_string())),
+                        Rc::new(ExprNode::Val(Value::I32(1)))
+                    ))]
+                ))
+            ))
+        )));
+
+        let stmt_if = StmtNode::If(
+            IfNode::new(cond_if, block_if_true, block_if_false)
+        );
+
+        let mut block = BlockNode::new();
+        block.statements.push(Rc::new(stmt_print));
+        block.statements.push(Rc::new(stmt_if));
+
+        FuncNode::new("factorial_recursion".to_string(), params, block)
+    };
+
+    // func factorial_recursion()
+    let func_main = {
+
+        let mut params = vec![];
+        params.push(Parameter::new("argc".to_string()));
+
+        let stmt_let = StmtNode::Let(LetNode::new(
+            "result".to_string(),
+            Value::Nil
+        ));
+
+        let stmt_assign = StmtNode::Assign(AssignNode::new(
+            "result".to_string(),
+            ExprNode::Call(
+                "factorial_recursion".to_string(),
+                vec![Rc::new(ExprNode::Val(Value::I32(5)))]
+            )
+        ));
+
+        let stmt_print = StmtNode::Print(PrintNode::new(
+            ExprNode::Var("result".to_string())
+        ));
+
+        let mut block = BlockNode::new();
+        block.statements.push(Rc::new(stmt_let));
+        block.statements.push(Rc::new(stmt_assign));
+        block.statements.push(Rc::new(stmt_print));
+
+        FuncNode::new("main".to_string(), params, block)
+    };
+
+    // add functions to program node
+    program.func_nodes.push(Rc::new(func_factorial_recursion));
+    program.func_nodes.push(Rc::new(func_main));
+
+    // wrap program node in reference counted pointer
+    Rc::new(program)
+}
+
+
 fn run0() {
-    let rc_program = grow_ast_program0();  
+    let rc_program = grow_ast_program1();
 
     let runtime = Machine::new(rc_program);
-    runtime.run(); // go to machine.rs line 18
+    runtime.run();
 }
 
 

@@ -3,8 +3,6 @@ use std::rc::Rc;
 use crate::symbols::Symbols;
 use crate::value::Value;
 
-// Different nodes that serve different purposes ExprNode needs expanded, unsure if any else
-
 #[derive(Debug, Clone)]
 pub struct ProgramNode {
     pub symbols: Rc<RefCell<Symbols>>,
@@ -76,6 +74,7 @@ impl BlockNode {
 pub enum StmtNode {
     Let(LetNode),
     Assign(AssignNode),
+    If(IfNode),
     Return(ReturnNode),
     Print(PrintNode),
 }
@@ -112,6 +111,23 @@ impl AssignNode {
 }
 
 #[derive(Debug, Clone)]
+pub struct IfNode {
+    pub cond: Rc<ExprNode>,
+    pub block_node_true: Rc<BlockNode>,
+    pub block_node_false: Rc<BlockNode>,
+}
+
+impl IfNode {
+    pub fn new(cond: ExprNode, block_node_true: BlockNode, block_node_false: BlockNode) -> IfNode {
+        IfNode {
+            cond: Rc::new(cond),
+            block_node_true: Rc::new( block_node_true),
+            block_node_false: Rc::new( block_node_false),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct PrintNode {
     pub expr: Rc<ExprNode>,
 }
@@ -142,6 +158,9 @@ pub enum ExprNode {
     Var(String),
     Val(Value),
     Add(Rc<ExprNode>, Rc<ExprNode>),
+    Sub(Rc<ExprNode>, Rc<ExprNode>),
+    Mul(Rc<ExprNode>, Rc<ExprNode>),
+    LessThan(Rc<ExprNode>, Rc<ExprNode>),
     Call(String, Vec<Rc<ExprNode>>),
 }
 

@@ -5,10 +5,8 @@ use crate::symbols::Symbols;
 use crate::tree::Parameter;
 use crate::value::Value;
 
-// frame is foreign to me. i do not fully understand this. all i can think is that its like scope? tells you what you can and cant use?
-
 pub struct Frame {
-    global: Option<Rc<RefCell<Frame>>>,
+    globals: Option<Rc<RefCell<Frame>>>,
     values: HashMap<String, Value>,
 }
 
@@ -16,9 +14,13 @@ impl Frame {
 
     pub fn new(global: Option<Rc<RefCell<Frame>>>) -> Frame {
         Frame {
-            global,
+            globals: global,
             values: HashMap::new(),
         }
+    }
+
+    pub fn get_globals(&self) -> Option<Rc<RefCell<Frame>>> {
+        self.globals.clone()
     }
 
     pub fn init_symbols(&mut self, symbols: &Symbols) {
@@ -51,7 +53,7 @@ impl Frame {
     }
 
     pub fn lookup_global(&self,  name: &String) -> Value {
-        match &self.global {
+        match &self.globals {
             None => { Value::Nil }
             Some(rc_globals) => {
                 rc_globals.borrow().lookup(name)

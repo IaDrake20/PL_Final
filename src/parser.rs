@@ -634,6 +634,4 @@ pub fn main() {
     let mut parser = DescentParser::new(lexer);
 
     parser.analyze();
-
-
 }
