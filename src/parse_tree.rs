@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 
-use crate::token::Token;
+use std::rc::Rc;
+use crate::token::{Token, self};
+use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
 
 
 #[derive(Clone)]
 pub struct ParseTree {
     pub token : Token,
-    children : Vec<Box<ParseTree>>
+    pub children : Vec<Box<ParseTree>>
 }
 
 impl ParseTree {
@@ -37,5 +39,40 @@ impl ParseTree {
 
     pub fn print(&self) {
         self.print_recursively(0);
+    }
+
+    pub fn grow(&self, program: ProgramNode){
+        match self.token {
+            Token::KW_FUNC => {
+                // add function
+                let mut parameters = vec![];
+                for n in 1..self.children[0].children.len() {
+                    parameters.push(Parameter::new(self.children[0].children[n].token.string()));
+                }
+
+                let mut block = BlockNode::new();
+                let stmt;
+                for n in 1..self.children[1].children.len() {
+                    stmt = self.children[1].children[n].grow(program);
+                }
+
+                block.statements.push(Rc::new(stmt));
+
+                let func = FuncNode::new(
+                    self.children[0].token.string(),
+                    parameters,
+                    block);
+
+                program.func_nodes.push(Rc::new(func));
+            }
+            Token::PRINT => {todo!()}
+            Token::RETURN => {todo!()}
+            Token::IF => {todo!()}
+            Token::ELSE => {todo!()}
+            Token::WHILE => {todo!()}
+            _ => {
+
+            }
+        }
     }
 }

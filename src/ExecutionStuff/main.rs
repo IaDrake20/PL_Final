@@ -6,7 +6,6 @@ use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Pa
 use crate::value::Value;
 
 mod tree;
-mod parse_tree;
 mod executor;
 mod machine;
 mod analyzer;
@@ -14,10 +13,6 @@ mod symbols;
 mod frame;
 mod value;
 mod evaluator;
-mod cli;
-<<<<<<< Updated upstream
-mod parser;
-mod token;
 
 
 /*
@@ -44,11 +39,14 @@ func main(argc) [
 fn grow_ast_program0() -> Rc<ProgramNode> {
     let mut program = ProgramNode::new();
 
+    let currentFunc = FuncNode::new();
+
+
     // global variables
-    let let_count = LetNode::new( "count".to_string(), Value::Nil);
-    let let_help =  LetNode::new( "help".to_string(), Value::Nil);
-    program.let_nodes.push(Rc::new(let_count));
-    program.let_nodes.push(Rc::new(let_help));
+    let let1 = LetNode::new( "count".to_string(), Value::Nil);
+    program.let_nodes.push(Rc::new(let1));
+    let let1 =  LetNode::new( "help".to_string(), Value::Nil);
+    program.let_nodes.push(Rc::new(let1));
 
     // add function
     let mut parameters_add = vec![];
@@ -239,32 +237,3 @@ fn run0() {
 fn main() {
     run0();
 }
-=======
-use crate::token::Token;
-use crate::lexer::Lexer;
-use crate::parse_tree::ParseTree;
-use crate::parser::DescentParser;
-const INDENT : usize = 2;
-
-fn main() {
-
-    // create a sequence of tokens that is assumed to
-    //   be output of the lexer
-
-    // create input for lexer
-
-    let input = r#"
-    func main(a: int32 )
-    [
-        let sum : int32 = 42;
-        return sum;
-    ]
-    "#;
-
-    // create recursive descent parser
-    let lexer = Lexer::new(input);
-    let mut parser = DescentParser::new(lexer);
-
-    parser.analyze();
-}
->>>>>>> Stashed changes

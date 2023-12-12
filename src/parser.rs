@@ -9,7 +9,7 @@ use crate::lexer::Lexer;
 use crate::parse_tree::ParseTree;
 const INDENT : usize = 2;
 
-struct DescentParser {
+pub struct DescentParser {
     lexer: Lexer,
     indent: usize,
     tree: ParseTree,
@@ -241,7 +241,7 @@ impl PrattParser { // utility functions for lexer
 
 }
 impl DescentParser {  // simple recursive descend parser
-fn new(lexer: Lexer) -> DescentParser {
+pub fn new(lexer: Lexer) -> DescentParser {
     DescentParser {
         lexer,
         indent: 0,
@@ -256,6 +256,7 @@ fn new(lexer: Lexer) -> DescentParser {
                 self.tree = ParseTree::new(Token::KW_FUNC);
                 self.tree = self.parse_func(self.tree.clone());
                 self.tree.print();
+                // make call to transform function node into executables
             }
             if self.peek(Token::EOI) {
                 self.expect(Token::EOI);
@@ -551,7 +552,7 @@ impl DescentParser { // utility functions for lexer
 }
 
 
-impl DescentParser { // utility functions for pretty print
+impl DescentParser { 
 // prints self at correctly indented location
 fn indent_print(&mut self, msg: &'static str) {
     println!("{:<indent$}{:}", "", msg, indent=self.indent);
@@ -579,6 +580,9 @@ pub fn main() {
 
     // start Pratt top-down operator precedence parsing
     let tree = parser.analyze();
+
+
+
 
     // print parse tree
     tree.print();
