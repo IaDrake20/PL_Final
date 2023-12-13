@@ -15,9 +15,10 @@ mod frame;
 mod value;
 mod evaluator;
 mod cli;
-<<<<<<< Updated upstream
+//<<<<<<< Updated upstream
 mod parser;
 mod token;
+mod lexer;
 
 
 /*
@@ -234,12 +235,7 @@ fn run0() {
     let runtime = Machine::new(rc_program);
     runtime.run();
 }
-
-
-fn main() {
-    run0();
-}
-=======
+//=======
 use crate::token::Token;
 use crate::lexer::Lexer;
 use crate::parse_tree::ParseTree;
@@ -267,4 +263,3 @@ fn main() {
 
     parser.analyze();
 }
->>>>>>> Stashed changes
