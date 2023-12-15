@@ -2,6 +2,7 @@
 
 use std::rc::Rc;
 use clap::builder::NonEmptyStringValueParser;
+use rand::distributions::Exp;
 
 use crate::token::{Token, self};
 use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
@@ -50,7 +51,7 @@ impl ParseTree {
         }
 
         let mut block = BlockNode::new();
-        let mut stmt = ();//= self.children[1].children[1].grow(program.clone());
+        let mut stmt: StmtNode;
 
         for n in 1..self.children[1].children.len() {
             stmt = self.children[1].children[n].stmtNode_grow();
@@ -74,7 +75,47 @@ impl ParseTree {
             Token::PRINT => {todo!()},
             Token::OP_ASSIGN => {todo!()},
             Token::LET => {todo!()},
-            _ => None
+            _ => {panic!()}
+        }
+    }
+
+    pub fn exprNode_grow(&self) -> ExprNode {
+        match self.token {
+            Token::PAREN_L => {todo!()},
+            Token::PAREN_R => {todo!()},
+            Token::BRACKET_L => {todo!()},
+            Token::BRACKET_R => {todo!()},
+            Token::BRACE_L => {todo!()},
+            Token::BRACE_R => {todo!()},
+
+            Token::COLON => {todo!()},
+
+            Token::OP_ADD => {todo!()},
+            Token::OP_SUB => {todo!()},
+            Token::OP_MUL => {todo!()},
+            Token::OP_DIV => {todo!()},
+
+            Token::OP_EQ => {todo!()},
+            Token::OP_LT => {todo!()},
+            Token::OP_GT => {todo!()},
+            Token::OP_NEQ => {todo!()},
+            Token::OP_NLT => {todo!()},
+            Token::OP_NGT => {todo!()},
+
+            Token::OP_NOT => {todo!()},
+            Token::OP_AND => {todo!()},
+            Token::OP_OR => {todo!()},
+
+            Token::OP_ASSIGN=> {todo!()},
+
+            Token::ID(_) => {todo!()},
+
+            Token::LIT_I32(_) => {todo!()},
+            Token::LIT_F32(_) => {todo!()},
+            Token::LIT_CHAR(_) => {todo!()},
+            Token::LIT_STRING(_) => {todo!()},
+            Token::LIT_BOOL(_) => {todo!()},
+            _ => {panic!()}
         }
     }
 }
