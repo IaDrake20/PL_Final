@@ -1,12 +1,13 @@
 #![allow(dead_code)]
 
-use std::rc::Rc;
+use std::rc::{Rc, self};
 use clap::builder::NonEmptyStringValueParser;
 use rand::distributions::Exp;
 
 use crate::token::{Token, self};
 use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
 use crate::value::Value;
+use crate::evaluator::Evaluator;
 
 
 #[derive(Clone)]
@@ -81,16 +82,21 @@ impl ParseTree {
             Token::OP_ASSIGN => {
                 return StmtNode::Assign(AssignNode::new(self.children[0].token.string().parse::<String>().unwrap(), self.children[1].exprNode_grow()));
             },
-            Token::LET => {
+            Token::LET => {panic!()},
+
                 //return StmtNode::Let(LetNode::new((self.children[0].token.string() as str).parse().unwrap(), self.children[1].exprNode_grow() as Value));
+                
+                // current block: how to get relevant frame for use in the evaluator call
+/*
+{
                 return StmtNode::Let(
                     LetNode::new(
-                        self.children[0].token.string(),
-                        self.children[1].exprNode_grow() as Value
+                        self.children[0].token.string().to_string(),
+                        Evaluator::evaluate(Rc::new(self.children[1].exprNode_grow()), rc_locals.clone())
                     )
                 );
-
-            },
+            }
+*/
             _ => {panic!()}
         }
     }
@@ -100,8 +106,7 @@ impl ParseTree {
             Token::PAREN_L => {
                 return self.children[0].exprNode_grow();
             },
-            Token::PAREN_R => 
-            {},
+            Token::PAREN_R => {panic!()},
             Token::OP_ADD => {
                 return ExprNode::Add(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));
             },
@@ -110,7 +115,7 @@ impl ParseTree {
                     return ExprNode::Sub(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));
                 }
                 else {
-                    return ExprNode::Sub(0, Rc::from(self.children[0].exprNode_grow()));
+                    return ExprNode::Sub(Rc::from(ExprNode::Val(Value::I32(0))), Rc::from(self.children[0].exprNode_grow()));
                 }
             }
             Token::OP_MUL => {
@@ -154,7 +159,7 @@ impl ParseTree {
                 return ExprNode::Val(Value::Chars(String::from(self.token.string().parse::<char>().unwrap())));
             },
             Token::LIT_STRING(_) => {
-                return ExprNode::Val(Value::Chars((self.token.string() as str).parse().unwrap()));
+                return ExprNode::Val(Value::Chars((self.token.string() as &str).parse().unwrap()));
             },
             Token::LIT_BOOL(_) => {
                 return ExprNode::Val(Value::Bool(self.token.string().parse::<bool>().unwrap()));
