@@ -95,7 +95,9 @@ impl Evaluator {
             }
             ExprNode::Not(expr_a) => {
                 let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
-                Self::relational(value_a, value_b, RelationalOp::Not)
+
+                //IAN:changed from relational method that included b to unary_relational
+                Self::unary_relational(value_a, RelationalOp::Not)
             }
             ExprNode::And(expr_a, expr_b) => {
                 let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
@@ -263,23 +265,25 @@ impl Evaluator {
                         Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
                         Value::I32(b) => {
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(a + b) }
-                                ArithmeticOp::Sub => { Value::Chars(a - b) }
-                                ArithmeticOp::Mul => { Value::Chars(a * b) }
-                                ArithmeticOp::Div => { Value::Chars(a / b) }
+                                ArithmeticOp::Add => { Value::Chars((a.parse::<i32>().unwrap() + b).to_string()) }
+                                ArithmeticOp::Sub => { Value::Chars((a.parse::<i32>().unwrap() - b).to_string()) }
+                                ArithmeticOp::Mul => { Value::Chars((a.parse::<i32>().unwrap() * b).to_string()) }
+                                ArithmeticOp::Div => { Value::Chars((a.parse::<i32>().unwrap() / b).to_string()) }
                             }
                         }
                         Value::F32(b) => {
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(a + b) }
-                                ArithmeticOp::Sub => { Value::Chars(a - b) }
-                                ArithmeticOp::Mul => { Value::Chars(a * b) }
-                                ArithmeticOp::Div => { Value::Chars(a / b) }
+                                //IAN: I'm not sure how well parsing into a float will go, guess we'll see
+                                ArithmeticOp::Add => { Value::Chars((a.parse::<f32>().unwrap() + b).to_string()) }
+                                ArithmeticOp::Sub => { Value::Chars((a.parse::<f32>().unwrap() - b).to_string()) }
+                                ArithmeticOp::Mul => { Value::Chars((a.parse::<f32>().unwrap() * b).to_string()) }
+                                ArithmeticOp::Div => { Value::Chars((a.parse::<f32>().unwrap() / b).to_string()) }
                             }
                         }
                         Value::Chars(b) => {
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(a + b) }
+                                //IAN: these should be some kind of literals right?
+                                ArithmeticOp::Add => { Value::Chars(a + &*b) }
                                 ArithmeticOp::Sub => { Value::Chars(a - b) }
                                 ArithmeticOp::Mul => { Value::Chars(a * b) }
                                 ArithmeticOp::Div => { Value::Chars(a / b) }
@@ -316,12 +320,13 @@ impl Evaluator {
                     }
                     Value::F32(b) => {
                         match op {
+                            //IAN: Added safecasting because Rust was complaining
                             RelationalOp::Equal => { Value::Bool(a == b) }
-                            RelationalOp::LessThan => { Value::Bool(a < b) }
-                            RelationalOp::GreaterThan => { Value::Bool(a > b) }
+                            RelationalOp::LessThan => { Value::Bool(a < b as i32) }
+                            RelationalOp::GreaterThan => { Value::Bool(a > b as i32) }
                             RelationalOp::NotEqual => { Value::Bool(a != b) }
-                            RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
-                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
+                            RelationalOp::LessThanEqual => { Value::Bool(a <= b as i32) }
+                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b as i32) }
                             _ =>{}
                         }
                     }
@@ -335,12 +340,13 @@ impl Evaluator {
                     Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
                     Value::I32(b) => {
                         match op {
+                            //IAN: safe casted the ints to floats
                             RelationalOp::Equal => { Value::Bool(a == b) }
-                            RelationalOp::LessThan => { Value::Bool(a < b) }
-                            RelationalOp::GreaterThan => { Value::Bool(a > b) }
-                            RelationalOp::NotEqual => { Value::Bool(a != b) }//Compiler says issue here with comparing float and int
-                            RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
-                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
+                            RelationalOp::LessThan => { Value::Bool(a < b as f32) }
+                            RelationalOp::GreaterThan => { Value::Bool(a > b as f32) }
+                            RelationalOp::NotEqual => { Value::Bool(a != b) }
+                            RelationalOp::LessThanEqual => { Value::Bool(a <= b as f32) }
+                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b as f32) }
                             _ => {}
                         }
                     }
@@ -361,6 +367,18 @@ impl Evaluator {
             }
             Value::Chars(_) => { todo!() }
             Value::Func(_, _) => { panic!("Left operand of '{op:?}' is Func!"); }
+        }
+    }
+    fn unary_relational(value_a: Value, op : RelationalOp) -> Value {
+        match value_a {
+            Value::Nil => { panic!("Operand of '{op:?}' is Nil!"); }
+            Value::Bool(a) => { panic!("Operand of '{op:?}' is Bool!"); }
+            Value::Chars(_) => { todo!() }
+            Value::Func(_, _) => { panic!("Operand of '{op:?}' is Func!"); }
+
+            //IAN: added these cases since we don't have a secondary Value (b in prev)
+            Value::F32(_) => { panic!("Operand of '{op:?}' is F32!"); }
+            Value::I32(_) => {panic!("Operand of '{op:?}' is I32!"); }
         }
     }
 

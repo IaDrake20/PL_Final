@@ -429,7 +429,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
                 output.push(self.parse_print());
             }
             else if self.peek(Token::id()) {
-                output.push(self.parse_expression(false));
+                output.push(self.parse_expression());//IAN:removed false param
                 output.push(self.expect(Token::SEMICOLON));
             }
         }
@@ -465,7 +465,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
                     output.push(self.parse_print());
                 }
                 else if self.peek(Token::id()) {
-                    output.push(self.parse_expression(false));
+                    output.push(self.parse_expression());//IAN: removed false param
                     output.push(self.expect(Token::SEMICOLON));
                 }
             }
