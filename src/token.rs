@@ -45,6 +45,7 @@ impl Token {
     pub fn lit_i32() -> Token { Token::LIT_I32(0) }
     pub fn bool() -> Token {Token::LIT_BOOL(true)}
 
+
     pub fn string(&self) -> &str{
         match self {
             Token::PAREN_L => "(",

@@ -82,7 +82,14 @@ impl ParseTree {
                 return StmtNode::Assign(AssignNode::new(self.children[0].token.string().parse::<String>().unwrap(), self.children[1].exprNode_grow()));
             },
             Token::LET => {
-                return StmtNode::Let(LetNode::new((self.children[0].token.string() as str).parse().unwrap(), self.children[1].exprNode_grow() as Value));
+                //return StmtNode::Let(LetNode::new((self.children[0].token.string() as str).parse().unwrap(), self.children[1].exprNode_grow() as Value));
+                return StmtNode::Let(
+                    LetNode::new(
+                        self.children[0].token.string(),
+                        self.children[1].exprNode_grow() as Value
+                    )
+                );
+
             },
             _ => {panic!()}
         }
@@ -138,19 +145,19 @@ impl ParseTree {
             },
 
             Token::LIT_I32(_) => {
-                return ExprNode::Val(Value::I32(self.token.string() as i32));
+                return ExprNode::Val(Value::I32(self.token.string().parse::<i32>().unwrap()));
             },
             Token::LIT_F32(_) => {
-                return ExprNode::Val(Value::F32(self.token.string() as f32));
+                return ExprNode::Val(Value::F32(self.token.string().parse::<f32>().unwrap()));
             },
             Token::LIT_CHAR(_) => {
-                return ExprNode::Val(Value::Chars(String::from(self.token.string() as char)));
+                return ExprNode::Val(Value::Chars(String::from(self.token.string().parse::<char>().unwrap())));
             },
             Token::LIT_STRING(_) => {
                 return ExprNode::Val(Value::Chars((self.token.string() as str).parse().unwrap()));
             },
             Token::LIT_BOOL(_) => {
-                return ExprNode::Val(Value::Bool(self.token.string() as bool));
+                return ExprNode::Val(Value::Bool(self.token.string().parse::<bool>().unwrap()));
             },
             _ => {panic!()}
         }
