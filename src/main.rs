@@ -256,7 +256,7 @@ fn main() {
         return sum;
     ]
     "#;
-
+    
     // create recursive descent parser
     let lexer = Lexer::new(input);
     let mut parser = DescentParser::new(lexer);

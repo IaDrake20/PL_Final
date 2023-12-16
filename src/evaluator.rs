@@ -22,6 +22,9 @@ enum RelationalOp {
     NotEqual,
     LessThanEqual,
     GreaterThanEqual,
+    Not,
+    And,
+    Or
 }
 
 
@@ -55,10 +58,54 @@ impl Evaluator {
                 let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
                 Self::arithmetic(value_a, value_b, ArithmeticOp::Mul)
             }
+            ExprNode::Div(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::arithmetic(value_a, value_b, ArithmeticOp::Div)
+            }
+            ExprNode::Equal(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::Equal)
+            }
             ExprNode::LessThan(expr_a, expr_b) => {
                 let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
                 let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
                 Self::relational(value_a, value_b, RelationalOp::LessThan)
+            }
+            ExprNode::GreaterThan(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::GreaterThan)
+            }
+            ExprNode::NotEqual(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::NotEqual)
+            }
+            ExprNode::LessThanEqual(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::LessThanEqual)
+            }
+            ExprNode::GreaterThanEqual(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::GreaterThanEqual)
+            }
+            ExprNode::Not(expr_a) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::Not)
+            }
+            ExprNode::And(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::And)
+            }
+            ExprNode::Or(expr_a, expr_b) => {
+                let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
+                let value_b = Self::evaluate(expr_b.clone(), rc_frame.clone());
+                Self::relational(value_a, value_b, RelationalOp::Or)
             }
             ExprNode::Call(name, rc_exprs) => {
                 println!("[debug] evaluating call '{name}'");
@@ -102,13 +149,87 @@ impl Evaluator {
                             ArithmeticOp::Div => { Value::I32(a / b) }
                         }
                     }
-                    Value::F32(_) => { todo!() }
-                    Value::Chars(_) => { todo!() }
+                    Value::F32(_) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::F32(a + b) }
+                            ArithmeticOp::Sub => { Value::F32(a - b) }
+                            ArithmeticOp::Mul => { Value::F32(a * b) }
+                            ArithmeticOp::Div => { Value::F32(a / b) }
+                        }
+                    }
+                    Value::Chars(_) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::I32(a + (b as int)) }
+                            ArithmeticOp::Sub => { Value::I32(a - (b as int)) }
+                            ArithmeticOp::Mul => { Value::I32(a * (b as int)) }
+                            ArithmeticOp::Div => { Value::I32(a / (b as int)) }
+                        }
+                    }
                     Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
                 }
             }
-            Value::F32(_) => { todo!() }
-            Value::Chars(_) => { todo!() }
+            Value::F32(a) => {
+                match value_b {
+                    Value::Nil => { panic!("Right operand of '{op:?}' is Nil!"); }
+                    Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
+                    Value::I32(b) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::F32(a + b) }
+                            ArithmeticOp::Sub => { Value::F32(a - b) }
+                            ArithmeticOp::Mul => { Value::F32(a * b) }
+                            ArithmeticOp::Div => { Value::F32(a / b) }
+                        }
+                    }
+                    Value::F32(_) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::F32(a + b) }
+                            ArithmeticOp::Sub => { Value::F32(a - b) }
+                            ArithmeticOp::Mul => { Value::F32(a * b) }
+                            ArithmeticOp::Div => { Value::F32(a / b) }
+                        }
+                    }
+                    Value::Chars(_) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::F32(a + (b as int)) }
+                            ArithmeticOp::Sub => { Value::F32(a - (b as int)) }
+                            ArithmeticOp::Mul => { Value::F32(a * (b as int)) }
+                            ArithmeticOp::Div => { Value::F32(a / (b as int)) }
+                        }
+                    }
+                    Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
+                }
+            }
+            Value::Chars(_) => {
+                match value_b {
+                    Value::Nil => { panic!("Right operand of '{op:?}' is Nil!"); }
+                    Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
+                    Value::I32(b) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::Chars(((a as int) + b) as char) }
+                            ArithmeticOp::Sub => { Value::Chars(((a as int) - b) as char) }
+                            ArithmeticOp::Mul => { Value::Chars(((a as int) * b) as char) }
+                            ArithmeticOp::Div => { Value::Chars(((a as int) / b) as char) }
+                        }
+                    }
+                    Value::F32(_) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::Chars(((a as int) + b) as char) }
+                            ArithmeticOp::Sub => { Value::Chars(((a as int) - b) as char) }
+                            ArithmeticOp::Mul => { Value::Chars(((a as int) * b) as char) }
+                            ArithmeticOp::Div => { Value::Chars(((a as int) / b) as char) }
+                        }
+                    }
+                    Value::Chars(_) => {
+                        match op {
+                            ArithmeticOp::Add => { Value::Chars(((a as int) + (b as int)) as char) }
+                            ArithmeticOp::Sub => { Value::Chars(((a as int) - (b as int)) as char) }
+                            ArithmeticOp::Mul => { Value::Chars(((a as int) * (b as int)) as char) }
+                            ArithmeticOp::Div => { Value::Chars(((a as int) / (b as int)) as char) }
+                        }
+                    }
+                    Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
+                }
+            }
             Value::Func(_, _) => { panic!("Left operand of '{op:?}' is Func!"); }
         }
     }
@@ -129,14 +250,54 @@ impl Evaluator {
                             RelationalOp::NotEqual => { Value::Bool(a != b) }
                             RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
                             RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
+                            _ => {}
                         }
                     }
-                    Value::F32(_) => { todo!() }
+                    Value::F32(_) => {
+                        match op {
+                            RelationalOp::Equal => { Value::Bool(a == b) }
+                            RelationalOp::LessThan => { Value::Bool(a < b) }
+                            RelationalOp::GreaterThan => { Value::Bool(a > b) }
+                            RelationalOp::NotEqual => { Value::Bool(a != b) }
+                            RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
+                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
+                            _ =>{}
+                        }
+                    }
                     Value::Chars(_) => { todo!() }
                     Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
                 }
             }
-            Value::F32(_) => { todo!() }
+            Value::F32(a) => {
+                match value_b {
+                    Value::Nil => { panic!("Right operand of '{op:?}' is Nil!"); }
+                    Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
+                    Value::I32(b) => {
+                        match op {
+                            RelationalOp::Equal => { Value::Bool(a == b) }
+                            RelationalOp::LessThan => { Value::Bool(a < b) }
+                            RelationalOp::GreaterThan => { Value::Bool(a > b) }
+                            RelationalOp::NotEqual => { Value::Bool(a != b) }
+                            RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
+                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
+                            _ => {}
+                        }
+                    }
+                    Value::F32(_) => {
+                        match op {
+                            RelationalOp::Equal => { Value::Bool(a == b) }
+                            RelationalOp::LessThan => { Value::Bool(a < b) }
+                            RelationalOp::GreaterThan => { Value::Bool(a > b) }
+                            RelationalOp::NotEqual => { Value::Bool(a != b) }
+                            RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
+                            RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
+                            _ => {}
+                        }
+                    }
+                    Value::Chars(_) => { todo!() }
+                    Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
+                }
+            }
             Value::Chars(_) => { todo!() }
             Value::Func(_, _) => { panic!("Left operand of '{op:?}' is Func!"); }
         }

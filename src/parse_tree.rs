@@ -6,6 +6,7 @@ use rand::distributions::Exp;
 
 use crate::token::{Token, self};
 use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
+use crate::value::Value;
 
 
 #[derive(Clone)]
@@ -68,53 +69,89 @@ impl ParseTree {
 
     pub fn stmtNode_grow(&self) -> StmtNode {
         match self.token {
-            Token::RETURN => { todo!()},
+            Token::RETURN => {
+                return StmtNode::Return(ReturnNode::new(self.children[0].exprNode_grow()));
+            },
             Token::IF => { todo!()},
             Token::ELSE => {todo!()},
             Token::WHILE => {todo!()},
-            Token::PRINT => {todo!()},
-            Token::OP_ASSIGN => {todo!()},
-            Token::LET => {todo!()},
+            Token::PRINT => {
+                return StmtNode::Print(PrintNode::new(self.children[0].exprNode_grow()));
+            },
+            Token::OP_ASSIGN => {
+                return StmtNode::Assign(AssignNode::new(self.children[0].token.string() as str, self.children[1].exprNode_grow()));
+            },
+            Token::LET => {
+                return StmtNode::Let(LetNode::new(self.children[0].token.string() as str, self.children[1].exprNode_grow()));
+            },
             _ => {panic!()}
         }
     }
 
     pub fn exprNode_grow(&self) -> ExprNode {
         match self.token {
-            Token::PAREN_L => {todo!()},
-            Token::PAREN_R => {todo!()},
-            Token::BRACKET_L => {todo!()},
-            Token::BRACKET_R => {todo!()},
-            Token::BRACE_L => {todo!()},
-            Token::BRACE_R => {todo!()},
+            Token::PAREN_L => {
+                return self.children[0].exprNode_grow();
+            },
+            Token::PAREN_R => 
+            {},
+            Token::OP_ADD => {
+                return ExprNode::Add(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+            },
+            Token::OP_SUB => {
+                if self.children.len() > 1 {
+                    return ExprNode::Sub(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+                }
+                else {
+                    return ExprNode::Sub(0, self.children[0].exprNode_grow());
+                }
+            }
+            Token::OP_MUL => {
+                return ExprNode::Mul(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+            },
+            Token::OP_DIV => {
+                return ExprNode::Div(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+            },
 
-            Token::COLON => {todo!()},
+            Token::OP_EQ => {
+                return ExprNode::Equal(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+            Token::OP_LT => {
+                return ExprNode::LessThan(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+            Token::OP_GT => {
+                return ExprNode::GreaterThan(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+            Token::OP_NEQ => {
+                return ExprNode::NotEqual(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+            Token::OP_NLT => {
+                return ExprNode::GreaterThanEqual(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+            Token::OP_NGT => {
+                return ExprNode::LessThanEqual(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
 
-            Token::OP_ADD => {todo!()},
-            Token::OP_SUB => {todo!()},
-            Token::OP_MUL => {todo!()},
-            Token::OP_DIV => {todo!()},
+            Token::OP_NOT => {
+                return ExprNode::Not(self.children[0].exprNode_grow());},
+            Token::OP_AND => {
+                return ExprNode::And(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+            Token::OP_OR => {
+                return ExprNode::Or(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
 
-            Token::OP_EQ => {todo!()},
-            Token::OP_LT => {todo!()},
-            Token::OP_GT => {todo!()},
-            Token::OP_NEQ => {todo!()},
-            Token::OP_NLT => {todo!()},
-            Token::OP_NGT => {todo!()},
+            Token::ID(_) => {
+                return ExprNode::Var(self.token.string().to_string());
+            },
 
-            Token::OP_NOT => {todo!()},
-            Token::OP_AND => {todo!()},
-            Token::OP_OR => {todo!()},
-
-            Token::OP_ASSIGN=> {todo!()},
-
-            Token::ID(_) => {todo!()},
-
-            Token::LIT_I32(_) => {todo!()},
-            Token::LIT_F32(_) => {todo!()},
-            Token::LIT_CHAR(_) => {todo!()},
-            Token::LIT_STRING(_) => {todo!()},
-            Token::LIT_BOOL(_) => {todo!()},
+            Token::LIT_I32(_) => {
+                return ExprNode::Val(Value::I32(self.token.string() as i32));
+            },
+            Token::LIT_F32(_) => {
+                return ExprNode::Val(Value::F32(self.token.string() as f32));
+            },
+            Token::LIT_CHAR(_) => {
+                return ExprNode::Val(Value::Chars(self.token.string() as char));
+            },
+            Token::LIT_STRING(_) => {
+                return ExprNode::Val(Value::Chars(self.token.string() as str));
+            },
+            Token::LIT_BOOL(_) => {
+                return ExprNode::Val(Value::Bool(self.token.string() as bool));
+            },
             _ => {panic!()}
         }
     }

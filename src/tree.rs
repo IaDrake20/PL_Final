@@ -160,11 +160,21 @@ pub enum ExprNode {
     Add(Rc<ExprNode>, Rc<ExprNode>),
     Sub(Rc<ExprNode>, Rc<ExprNode>),
     Mul(Rc<ExprNode>, Rc<ExprNode>),
+    Div(Rc<ExprNode>, Rc<ExprNode>),
+    Equal(Rc<ExprNode>, Rc<ExprNode>),
     LessThan(Rc<ExprNode>, Rc<ExprNode>),
+    GreaterThan(Rc<ExprNode>, Rc<ExprNode>),
+    NotEqual(Rc<ExprNode>, Rc<ExprNode>),
+    LessThanEqual(Rc<ExprNode>, Rc<ExprNode>),
+    GreaterThanEqual(Rc<ExprNode>, Rc<ExprNode>),
+    Not(Rc<ExprNode>),
+    And(Rc<ExprNode>, Rc<ExprNode>),
+    Or(Rc<ExprNode>, Rc<ExprNode>),
     Call(String, Vec<Rc<ExprNode>>),
 }
 
 impl ExprNode {
+
 
 }
 
