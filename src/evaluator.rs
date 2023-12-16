@@ -206,7 +206,7 @@ impl Evaluator {
                         if b.len() <= 1 {
                             match op {
                                 //IAN: changed int to u8 and added parsing it from b
-                                ArithmeticOp::Add => { Value::F32(a + (b.parse::<u8>().unwrap())) }
+                                ArithmeticOp::Add => { Value::F32(a + (b.parse::<>().unwrap())) }
                                 ArithmeticOp::Sub => { Value::F32(a - (b.parse::<u8>().unwrap())) }
                                 ArithmeticOp::Mul => { Value::F32(a * (b.parse::<u8>().unwrap())) }
                                 ArithmeticOp::Div => { Value::F32(a / (b.parse::<u8>().unwrap())) }
@@ -214,10 +214,10 @@ impl Evaluator {
                         }
                         else {
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(a + b) }
-                                ArithmeticOp::Sub => { Value::Chars(a - b) }
-                                ArithmeticOp::Mul => { Value::Chars(a * b) }
-                                ArithmeticOp::Div => { Value::Chars(a / b) }
+                                ArithmeticOp::Add => { Value::Chars((a + b.parse::<f32>().unwrap()).to_string()) }
+                                ArithmeticOp::Sub => { Value::Chars((a - b.parse::<f32>().unwrap()).to_string()) }
+                                ArithmeticOp::Mul => { Value::Chars((a * b.parse::<f32>().unwrap()).to_string()) }
+                                ArithmeticOp::Div => { Value::Chars((a / b.parse::<f32>().unwrap()).to_string()) }
                             }
                         }
                     }
@@ -283,10 +283,14 @@ impl Evaluator {
                         Value::Chars(b) => {
                             match op {
                                 //IAN: these should be some kind of literals right?
-                                ArithmeticOp::Add => { Value::Chars(a + &*b) }
-                                ArithmeticOp::Sub => { Value::Chars(a - b) }
-                                ArithmeticOp::Mul => { Value::Chars(a * b) }
-                                ArithmeticOp::Div => { Value::Chars(a / b) }
+                                //ArithmeticOp::Add => { Value::Chars(a + &*b) }
+                                //ArithmeticOp::Sub => { Value::Chars(a - b) }
+                                //ArithmeticOp::Mul => { Value::Chars(a * b) }
+                                //ArithmeticOp::Div => { Value::Chars(a / b) }
+                                ArithmeticOp::Add => {}
+                                ArithmeticOp::Sub => {}
+                                ArithmeticOp::Mul => {}
+                                ArithmeticOp::Div => {}
                             }
                         }
                         Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
