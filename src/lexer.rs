@@ -12,7 +12,7 @@ pub struct Lexer {
 impl Lexer {
 
     // called from parser_descent.rs
-    pub fn new(string_input: &'static str) -> Lexer {
+    pub fn new(string_input: &str) -> Lexer {
 
         let mut lexicon = Lexer {
             input_string: string_input.to_string(),

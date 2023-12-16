@@ -7,6 +7,13 @@ parsing. Optionally, add error localization and descriptions.
 use crate::token::Token;
 use crate::lexer::Lexer;
 use crate::parse_tree::ParseTree;
+use std::env;
+use std::fs;
+use std::fs::File;
+use std::io::Read;
+//use std::fs::File;
+//use std::io::{self, Read};
+
 const INDENT : usize = 2;
 
 pub struct DescentParser {
@@ -561,20 +568,20 @@ fn indent_print(&mut self, msg: &'static str) {
 }
 pub fn main() {
 
+    let file_path = "";
+    let contents = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
 
     // create a sequence of tokens that is assumed to
     //   be output of the lexer
-    let tokens = r#" true "#;
+    let tokens = contents;
 
     // create Pratt parser
-    let lexer = Lexer::new(tokens);
+    let lexer = Lexer::new(&tokens);
     let mut parser = PrattParser::new(lexer);
 
     // start Pratt top-down operator precedence parsing
     let tree = parser.analyze();
-
-
-
 
     // print parse tree
     tree.print();
@@ -584,6 +591,7 @@ pub fn main() {
 
     // create input for lexer
 
+    /*
     let input = r#"
     func add(x : int32, y : char, z : f32) -> int32
     [
@@ -624,9 +632,10 @@ pub fn main() {
         return sum;
     ]
     "#;
+     */
 
     // create recursive descent parser
-    let lexer = Lexer::new(input);
+    let lexer = Lexer::new(&tokens);
     let mut parser = DescentParser::new(lexer);
 
     parser.analyze();

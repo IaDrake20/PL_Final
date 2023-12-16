@@ -96,8 +96,8 @@ impl Evaluator {
             ExprNode::Not(expr_a) => {
                 let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
 
-                //IAN:changed from relational method that included b to unary_relational
-                Self::unary_relational(value_a, RelationalOp::Not)
+                //NOT AND OR Need set up in relational
+                Self::relational(value_a, 0, RelationalOp::Not)
             }
             ExprNode::And(expr_a, expr_b) => {
                 let value_a = Self::evaluate(expr_a.clone(), rc_frame.clone());
@@ -373,6 +373,8 @@ impl Evaluator {
             Value::Func(_, _) => { panic!("Left operand of '{op:?}' is Func!"); }
         }
     }
+
+    //insdie value bool match op not and or and match ops there
     fn unary_relational(value_a: Value, op : RelationalOp) -> Value {
         match value_a {
             Value::Nil => { panic!("Operand of '{op:?}' is Nil!"); }
