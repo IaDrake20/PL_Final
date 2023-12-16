@@ -79,10 +79,10 @@ impl ParseTree {
                 return StmtNode::Print(PrintNode::new(self.children[0].exprNode_grow()));
             },
             Token::OP_ASSIGN => {
-                return StmtNode::Assign(AssignNode::new(self.children[0].token.string() as str, self.children[1].exprNode_grow()));
+                return StmtNode::Assign(AssignNode::new(self.children[0].token.string().parse::<String>().unwrap(), self.children[1].exprNode_grow()));
             },
             Token::LET => {
-                return StmtNode::Let(LetNode::new(self.children[0].token.string() as str, self.children[1].exprNode_grow()));
+                return StmtNode::Let(LetNode::new((self.children[0].token.string() as str).parse().unwrap(), self.children[1].exprNode_grow() as Value));
             },
             _ => {panic!()}
         }
@@ -96,42 +96,42 @@ impl ParseTree {
             Token::PAREN_R => 
             {},
             Token::OP_ADD => {
-                return ExprNode::Add(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+                return ExprNode::Add(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));
             },
             Token::OP_SUB => {
                 if self.children.len() > 1 {
-                    return ExprNode::Sub(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+                    return ExprNode::Sub(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));
                 }
                 else {
-                    return ExprNode::Sub(0, self.children[0].exprNode_grow());
+                    return ExprNode::Sub(0, Rc::from(self.children[0].exprNode_grow()));
                 }
             }
             Token::OP_MUL => {
-                return ExprNode::Mul(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+                return ExprNode::Mul(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));
             },
             Token::OP_DIV => {
-                return ExprNode::Div(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());
+                return ExprNode::Div(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));
             },
 
             Token::OP_EQ => {
-                return ExprNode::Equal(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::Equal(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
             Token::OP_LT => {
-                return ExprNode::LessThan(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::LessThan(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
             Token::OP_GT => {
-                return ExprNode::GreaterThan(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::GreaterThan(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
             Token::OP_NEQ => {
-                return ExprNode::NotEqual(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::NotEqual(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
             Token::OP_NLT => {
-                return ExprNode::GreaterThanEqual(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::GreaterThanEqual(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
             Token::OP_NGT => {
-                return ExprNode::LessThanEqual(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::LessThanEqual(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
 
             Token::OP_NOT => {
-                return ExprNode::Not(self.children[0].exprNode_grow());},
+                return ExprNode::Not(Rc::from(self.children[0].exprNode_grow()));},
             Token::OP_AND => {
-                return ExprNode::And(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::And(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
             Token::OP_OR => {
-                return ExprNode::Or(self.children[0].exprNode_grow(), self.children[1].exprNode_grow());},
+                return ExprNode::Or(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
 
             Token::ID(_) => {
                 return ExprNode::Var(self.token.string().to_string());
@@ -144,10 +144,10 @@ impl ParseTree {
                 return ExprNode::Val(Value::F32(self.token.string() as f32));
             },
             Token::LIT_CHAR(_) => {
-                return ExprNode::Val(Value::Chars(self.token.string() as char));
+                return ExprNode::Val(Value::Chars(String::from(self.token.string() as char)));
             },
             Token::LIT_STRING(_) => {
-                return ExprNode::Val(Value::Chars(self.token.string() as str));
+                return ExprNode::Val(Value::Chars((self.token.string() as str).parse().unwrap()));
             },
             Token::LIT_BOOL(_) => {
                 return ExprNode::Val(Value::Bool(self.token.string() as bool));

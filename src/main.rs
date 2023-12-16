@@ -4,6 +4,7 @@ use std::rc::Rc;
 use crate::machine::Machine;
 use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
 use crate::value::Value;
+use clap::Parser;
 
 mod tree;
 mod parse_tree;
@@ -20,6 +21,14 @@ mod parser;
 mod token;
 mod lexer;
 
+// Search for a pattern in a file and display the lines that contain it.
+#[derive(Parser)]
+struct Cli {
+    /// The pattern to look for
+    pattern: String,
+    /// The path to the file to read
+    path: std::path::PathBuf,
+}
 
 /*
 
@@ -243,6 +252,15 @@ use crate::parser::DescentParser;
 const INDENT : usize = 2;
 
 fn main() {
+
+    let args = Cli::parse();
+    let content = std::fs::read_to_string(&args.path).expect("could not read file");
+
+    for line in content.lines() {
+        if line.contains(&args.pattern) {
+            println!("{}", line);
+        }
+    }
 
     // create a sequence of tokens that is assumed to
     //   be output of the lexer

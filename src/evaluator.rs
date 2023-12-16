@@ -160,18 +160,20 @@ impl Evaluator {
                     Value::Chars(b) => {
                         if b.len() <= 1 {
                             match op {
-                                ArithmeticOp::Add => { Value::I32(a + (b as int)) }
-                                ArithmeticOp::Sub => { Value::I32(a - (b as int)) }
-                                ArithmeticOp::Mul => { Value::I32(a * (b as int)) }
-                                ArithmeticOp::Div => { Value::I32(a / (b as int)) }
+                                //IAN: replaced ints with i32 and introduced parseing it from b
+                                ArithmeticOp::Add => { Value::I32(a + (b.parse::<i32>().unwrap())) }
+                                ArithmeticOp::Sub => { Value::I32(a - (b.parse::<i32>().unwrap())) }
+                                ArithmeticOp::Mul => { Value::I32(a * (b.parse::<i32>().unwrap())) }
+                                ArithmeticOp::Div => { Value::I32(a / (b.parse::<i32>().unwrap())) }
                             }
                         }
                         else {
+                            //IAN: fixed some type issues here with int from string shenanigans
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(a + b) }
-                                ArithmeticOp::Sub => { Value::Chars(a - b) }
-                                ArithmeticOp::Mul => { Value::Chars(a * b) }
-                                ArithmeticOp::Div => { Value::Chars(a / b) }
+                                ArithmeticOp::Add => { Value::Chars((a + b.parse::<i32>().unwrap()).to_string()) }
+                                ArithmeticOp::Sub => { Value::Chars((a - b.parse::<i32>().unwrap()).to_string()) }
+                                ArithmeticOp::Mul => { Value::Chars((a * b.parse::<i32>().unwrap()).to_string()) }
+                                ArithmeticOp::Div => { Value::Chars((a / b.parse::<i32>().unwrap()).to_string()) }
                             }
                         }
                     }
@@ -201,10 +203,11 @@ impl Evaluator {
                     Value::Chars(b) => {
                         if b.len() <= 1 {
                             match op {
-                                ArithmeticOp::Add => { Value::F32(a + (b as int)) }
-                                ArithmeticOp::Sub => { Value::F32(a - (b as int)) }
-                                ArithmeticOp::Mul => { Value::F32(a * (b as int)) }
-                                ArithmeticOp::Div => { Value::F32(a / (b as int)) }
+                                //IAN: changed int to u8 and added parsing it from b
+                                ArithmeticOp::Add => { Value::F32(a + (b.parse::<u8>().unwrap())) }
+                                ArithmeticOp::Sub => { Value::F32(a - (b.parse::<u8>().unwrap())) }
+                                ArithmeticOp::Mul => { Value::F32(a * (b.parse::<u8>().unwrap())) }
+                                ArithmeticOp::Div => { Value::F32(a / (b.parse::<u8>().unwrap())) }
                             }
                         }
                         else {
@@ -226,26 +229,29 @@ impl Evaluator {
                         Value::Bool(b) => { panic!("Right operand of '{op:?}' is Bool!"); }
                         Value::I32(b) => {
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(((a as int) + b) as char) }
-                                ArithmeticOp::Sub => { Value::Chars(((a as int) - b) as char) }
-                                ArithmeticOp::Mul => { Value::Chars(((a as int) * b) as char) }
-                                ArithmeticOp::Div => { Value::Chars(((a as int) / b) as char) }
+                                //IAN: changed all ints to u8s and introduced parse calls frm a
+                                ArithmeticOp::Add => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) + b) as char)) }
+                                ArithmeticOp::Sub => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) - b) as char)) }
+                                ArithmeticOp::Mul => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) * b) as char)) }
+                                ArithmeticOp::Div => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) / b) as char)) }
                             }
                         }
                         Value::F32(b) => {
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(((a as int) + b) as char) }
-                                ArithmeticOp::Sub => { Value::Chars(((a as int) - b) as char) }
-                                ArithmeticOp::Mul => { Value::Chars(((a as int) * b) as char) }
-                                ArithmeticOp::Div => { Value::Chars(((a as int) / b) as char) }
+                                //IAN: changed int to u8 and added parsing it from a, rust suggested building thr chars as String::from
+                                ArithmeticOp::Add => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) + b) as char)) }
+                                ArithmeticOp::Sub => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) - b) as char)) }
+                                ArithmeticOp::Mul => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) * b) as char)) }
+                                ArithmeticOp::Div => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) / b) as char)) }
                             }
                         }
                         Value::Chars(b) => {
                             match op {
-                                ArithmeticOp::Add => { Value::Chars(((a as int) + (b as int)) as char) }
-                                ArithmeticOp::Sub => { Value::Chars(((a as int) - (b as int)) as char) }
-                                ArithmeticOp::Mul => { Value::Chars(((a as int) * (b as int)) as char) }
-                                ArithmeticOp::Div => { Value::Chars(((a as int) / (b as int)) as char) }
+                                //IAN: changed int to u8 and added parsing it from a, rust suggested building thr chars as String::from
+                                ArithmeticOp::Add => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) + (b.parse::<u8>().unwrap())) as char)) }
+                                ArithmeticOp::Sub => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) - (b.parse::<u8>().unwrap())) as char)) }
+                                ArithmeticOp::Mul => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) * (b.parse::<u8>().unwrap())) as char)) }
+                                ArithmeticOp::Div => { Value::Chars(String::from(((a.parse::<u8>().unwrap()) / (b.parse::<u8>().unwrap())) as char)) }
                             }
                         }
                         Value::Func(_, _) => { panic!("Right operand of '{op:?}' is Func!"); }
@@ -332,7 +338,7 @@ impl Evaluator {
                             RelationalOp::Equal => { Value::Bool(a == b) }
                             RelationalOp::LessThan => { Value::Bool(a < b) }
                             RelationalOp::GreaterThan => { Value::Bool(a > b) }
-                            RelationalOp::NotEqual => { Value::Bool(a != b) }
+                            RelationalOp::NotEqual => { Value::Bool(a != b) }//Compiler says issue here with comparing float and int
                             RelationalOp::LessThanEqual => { Value::Bool(a <= b) }
                             RelationalOp::GreaterThanEqual => { Value::Bool(a >= b) }
                             _ => {}

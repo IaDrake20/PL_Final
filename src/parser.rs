@@ -341,7 +341,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
                 output.push(self.parse_print());
             }
             if self.peek(Token::id()) {
-                output.push(self.parse_expression(false));
+                output.push(self.parse_expression());//IAN:Removed false from params
                 output.push(self.expect(Token::SEMICOLON));
             }
         }
@@ -378,7 +378,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
     fn parse_if(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         self.advance();
-        output.push(self.parse_expression(false));
+        output.push(self.parse_expression());//IAN: Removed false from params
         output.push(self.expect(Token::BRACKET_L));
         while ! self.peek(Token::BRACKET_R) {
             if self.peek(Token::LET) | self.peek(Token::RETURN){
@@ -397,7 +397,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
                 output.push(self.parse_while());
             }
             else if self.peek(Token::id()) {
-                output.push(self.parse_expression(false));
+                output.push(self.parse_expression()); //IAN: removed the false from the params
                 output.push(self.expect(Token::SEMICOLON));
             }
         }
@@ -478,7 +478,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
     fn parse_statement(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         self.advance();
-        output.push(self.parse_expression(false));
+        output.push(self.parse_expression());//IAN: removed false param
         output.push(self.expect(Token::SEMICOLON));
         return output;
     }
