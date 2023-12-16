@@ -25,10 +25,6 @@ impl Token {
 
             Token::PAREN_L => (2,1),
             Token::PAREN_R => (1,1),
-            Token::BRACKET_L => (2,1),
-            Token::BRACKET_R => (1,1),
-            Token::BRACE_L => (2,1),
-            Token::BRACE_R => (1,1),
 
             Token::COLON => (2,3),
 
@@ -146,6 +142,12 @@ impl PrattParser {
                 node
             }
             Token::KW_FUNC => {
+                let mut node = ParseTree::new(token.clone());
+                let right_denotation = self.pratt_driver(token.right_bp());
+                node.push(right_denotation);
+                node
+            }
+            Token::OP_SUB => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(right_denotation);
@@ -358,19 +360,11 @@ pub fn new(lexer: Lexer) -> DescentParser {
     }
 
     // parse_expression -> (uses pratt parser to read expression)
-    fn parse_expression(&mut self, isPrint: bool) -> ParseTree{
+    fn parse_expression(&mut self) -> ParseTree{
         let mut token_string : String = "".to_string();
-        if isPrint {
-            while self.curr() != Token::PAREN_R{
-                token_string.push_str(&(self.curr().string().to_string() + " "));
-                self.advance();
-            }
-        }
-        else {
             while (self.curr() != Token::SEMICOLON) & (self.curr() != Token::BRACKET_L){
                 token_string.push_str(&(self.curr().string().to_string() + " "));
                 self.advance();
-            }
         }
         let token_str : &'static str = token_string.leak();
 
@@ -489,13 +483,11 @@ pub fn new(lexer: Lexer) -> DescentParser {
         return output;
     }
 
-    // parse_print -> PRINT PAREN_L parse_expression PAREN_R SEMICOLON
+    // parse_print -> PRINT parse_expression SEMICOLON
     fn parse_print(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         self.advance();
-        output.push(self.expect(Token::PAREN_L));
-        output.push(self.parse_expression(true));//
-        output.push(self.expect(Token::PAREN_R));
+        output.push(self.parse_expression());//
         output.push(self.expect(Token::SEMICOLON));
         return output;
     }
