@@ -15,8 +15,6 @@ mod symbols;
 mod frame;
 mod value;
 mod evaluator;
-mod cli;
-//<<<<<<< Updated upstream
 mod parser;
 mod token;
 mod lexer;
