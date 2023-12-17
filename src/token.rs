@@ -43,6 +43,7 @@ impl Token {
         Token::ID(String::new())
     }
     pub fn lit_i32() -> Token { Token::LIT_I32(0) }
+    pub fn lit_f32() -> Token { Token::LIT_F32(0.0) }
     pub fn bool() -> Token {Token::LIT_BOOL(true)}
 
 

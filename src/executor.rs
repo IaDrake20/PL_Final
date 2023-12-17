@@ -51,7 +51,7 @@ impl Executor {
         let rc_global = Rc::new(RefCell::new(global));
 
         // execute main function
-        let arguments = vec![Value::I32(1)];
+        let arguments = vec![];
         Self::execute_function(rc_main, rc_global, arguments);
     }
 

@@ -113,6 +113,8 @@ impl Evaluator {
                 println!("[debug] evaluating call '{name}'");
                 match rc_frame.borrow().lookup_global(name) {
                     Value::Func(rc_func, argc) => {
+                        
+                        
                         assert_eq!(argc,rc_exprs.len());
 
                         let mut arguments = vec![];

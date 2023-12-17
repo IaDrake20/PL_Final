@@ -284,26 +284,21 @@ fn main() {
         //   be output of the lexer
 
         // create input for lexer
+    }
 
-        /*
     let input = r#"
     
-    func add(a:i32,b:i32) [
+    func add(a, b) [
         return a + b;
     ]
-<<<<<<< Updated upstream
-    "
-     */
-    }
-=======
 
     func main() [
-        x = 1 + 1;
-        print x;
+        x = 1;
+        y = 2;
+        print add(x, y);
     ]
 
     "#;
->>>>>>> Stashed changes
     
     // create recursive descent parser
     let lexer = Lexer::new(&input);

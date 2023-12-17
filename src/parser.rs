@@ -90,7 +90,16 @@ impl PrattParser {
     fn pratt_driver(&mut self, requested_bp: i32) -> ParseTree {
         let mut current_token = self.current();
         self.advance();
-        let mut left_denotation = self.func_prefix(current_token);
+
+        let mut left_denotation = self.func_prefix(current_token.clone());
+
+        if (Token::ID(String::new()) == current_token.clone() ) & ( self.current() == Token:: PAREN_L){
+            left_denotation = ParseTree::new(current_token.clone());
+            let temp = self.current();
+            left_denotation.push(self.func_call(temp.clone()));
+            self.advance();
+        }
+
         if left_denotation.token == Token::PAREN_L {
             left_denotation.push(ParseTree::new(Token::PAREN_R));
             self.advance();
@@ -107,6 +116,37 @@ impl PrattParser {
             self.advance();
             left_denotation = self.func_infix(current_token, left_denotation);
         }
+    }
+
+    fn func_call(&mut self, token: Token) -> ParseTree {
+
+        let mut output = ParseTree::new(self.current());
+        self.advance();
+        if self.peek(Token::PAREN_R) {
+            return output;
+        }
+        if self.peek(Token::id()){
+            output.push(self.expect(Token::id()));
+        }
+        else if self.peek(Token::lit_i32()){
+            output.push(self.expect(Token::lit_i32()));
+        }
+        else if self.peek(Token::lit_f32()){
+            output.push(self.expect(Token::lit_f32()));
+        }
+        while self.accept(Token::COMMA) {
+            if self.peek(Token::id()){
+                output.push(self.expect(Token::id()));
+            }
+            else if self.peek(Token::lit_i32()){
+                output.push(self.expect(Token::lit_i32()));
+            }
+            else if self.peek(Token::lit_f32()){
+                output.push(self.expect(Token::lit_f32()));
+            }
+        }
+        return output;
+        
     }
 
     fn func_prefix(&mut self, token: Token) -> ParseTree {
@@ -253,6 +293,38 @@ impl PrattParser { // utility functions for lexer
         self.lexer.advance();
     }
 
+    fn expect(&mut self, symbol: Token) -> ParseTree{
+        let output: ParseTree;
+        if self.current() == symbol {
+            output = ParseTree::new(self.current());
+            self.advance();
+        } else {
+
+            println!("{:?}", self.current());
+            println!("{:?}", symbol);
+
+            panic!("Did not expect {:?}!", self.current());
+        }
+
+        return output;
+    }
+
+    // similar to expect, but doesnt crash if expected symbol is not found
+    // returns boolean
+    fn accept(&mut self, symbol: Token) -> bool {
+        if self.current() == symbol {
+            self.advance();
+            true
+        } else {
+            false
+        }
+    }
+
+    // checks that current symbol is equivalent to a given symbol
+    // used for block lists
+    fn peek(&mut self, symbol: Token) -> bool {
+        self.lexer.current() == symbol
+    }
 }
 impl DescentParser {  // simple recursive descend parser
 pub fn new(lexer: Lexer) -> DescentParser {
@@ -270,6 +342,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
             self.tree = ParseTree::new(Token::KW_FUNC);
             self.tree = self.parse_func(self.tree.clone());
             
+            self.tree.print();
             // make call to transform function node into executables
             
             program.func_nodes.push(Rc::new(ParseTree::funcNode_grow(&self.tree)));
@@ -277,6 +350,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
         if self.peek(Token::EOI) {
             self.expect(Token::EOI);
             self.tree = ParseTree::new(Token::EOI);
+
+            self.tree.print();
 
             let rcProgram = Rc::new(program);
             let machine = Machine::new(rcProgram);
@@ -323,15 +398,18 @@ pub fn new(lexer: Lexer) -> DescentParser {
     fn parse_parameter(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         output.push(self.expect(Token::id()));
-        output.push(self.expect(Token::COLON));
-        if self.peek(Token::TYPE_I32) {
-            output.push(self.expect(Token::TYPE_I32));
-        }
-        if self.peek(Token::TYPE_F32) {
-            output.push(self.expect(Token::TYPE_F32));
-        }
-        if self.peek(Token::TYPE_CHAR) {
-            output.push(self.expect(Token::TYPE_CHAR));
+
+        if (self.peek(Token::COLON)){
+            output.push(self.expect(Token::COLON));
+            if self.peek(Token::TYPE_I32) {
+                output.push(self.expect(Token::TYPE_I32));
+            }
+            if self.peek(Token::TYPE_F32) {
+                output.push(self.expect(Token::TYPE_F32));
+            }
+            if self.peek(Token::TYPE_CHAR) {
+                output.push(self.expect(Token::TYPE_CHAR));
+            }
         }
         return output;
     }
@@ -355,9 +433,11 @@ pub fn new(lexer: Lexer) -> DescentParser {
             }
             if self.peek(Token::LET) | self.peek(Token::RETURN){
                 output.push(self.parse_statement());
+                self.expect(Token::SEMICOLON);
             }
             if self.peek(Token::PRINT) {
                 output.push(self.parse_print());
+                self.expect(Token::SEMICOLON);
             }
             if self.peek(Token::id()) {
                 output.push(self.parse_expression());//IAN:Removed false from params
@@ -392,8 +472,6 @@ pub fn new(lexer: Lexer) -> DescentParser {
         let mut prattparser = PrattParser::new(prattlexer);
         let mut output =  prattparser.analyze();
 
-        output.push(ParseTree::new(Token::SEMICOLON));
-
         return output;
 
     }
@@ -408,6 +486,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
         while ! self.peek(Token::BRACKET_R) {
             if self.peek(Token::LET) | self.peek(Token::RETURN){
                 output.push(self.parse_statement());
+                self.expect(Token::SEMICOLON);
             }
             else if self.peek(Token::IF) {
                 output.push(self.parse_if());
@@ -417,6 +496,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
             }
             else if self.peek(Token::PRINT) {
                 output.push(self.parse_print());//
+                self.expect(Token::SEMICOLON);
             }
             else if self.peek(Token::WHILE) {
                 output.push(self.parse_while());
@@ -440,6 +520,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
         while ! self.peek(Token::BRACKET_R) {
             if self.peek(Token::LET) | self.peek(Token::RETURN){
                 output.push(self.parse_statement());
+                self.expect(Token::SEMICOLON);
             }
             else if self.peek(Token::WHILE) {
                 output.push(self.parse_while());
@@ -452,6 +533,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
             }
             else if self.peek(Token::PRINT) {
                 output.push(self.parse_print());
+                self.expect(Token::SEMICOLON);
             }
             else if self.peek(Token::id()) {
                 output.push(self.parse_expression());
@@ -488,6 +570,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
                 }
                 else if self.peek(Token::PRINT) {
                     output.push(self.parse_print());
+                    self.expect(Token::SEMICOLON);
                 }
                 else if self.peek(Token::id()) {
                     output.push(self.parse_expression());
@@ -504,7 +587,6 @@ pub fn new(lexer: Lexer) -> DescentParser {
         let mut output = ParseTree::new(self.curr());
         self.advance();
         output.push(self.parse_expression());
-        self.expect(Token::SEMICOLON);
         return output;
     }
 
@@ -513,7 +595,6 @@ pub fn new(lexer: Lexer) -> DescentParser {
         let mut output = ParseTree::new(self.curr());
         self.advance();
         output.push(self.parse_expression());
-        self.expect(Token::SEMICOLON);
         return output;
     }
 }

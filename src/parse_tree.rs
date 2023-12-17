@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use std::alloc::GlobalAlloc;
 use std::rc::{Rc, self};
 use clap::builder::NonEmptyStringValueParser;
 use rand::distributions::Exp;
@@ -48,7 +49,8 @@ impl ParseTree {
 
     pub fn funcNode_grow(&self) -> FuncNode{
         let mut parameters = vec![];
-        for n in 1..self.children[0].children.len(){
+        for n in 1..self.children[0].children.len() - 1{
+            println!("{:?}", self.children[0].children[n].node_string());
             parameters.push(Parameter::new(self.children[0].children[n].token.string().parse().unwrap()));
         }
 
@@ -92,7 +94,7 @@ impl ParseTree {
                 return StmtNode::Let(
                     LetNode::new(
                         self.children[0].token.string().to_string(),
-                        Evaluator::evaluate(Rc::new(self.children[1].exprNode_grow()), rc_locals.clone())
+                        Evaluator::evaluate(Rc::new(self.children[1].exprNode_grow()), FRAME GOES HERE)
                     )
                 );
             }
@@ -146,6 +148,14 @@ impl ParseTree {
                 return ExprNode::Or(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
 
             Token::ID(_) => {
+                println!("blue {:?}", self.children.len());
+                if(self.children.len() > 0){
+                    let mut exprs = vec![];
+                    for n in 0..self.children[0].children.len(){
+                        exprs.insert(n, Rc::new(self.children[0].children[n].exprNode_grow()));
+                    }
+                    return ExprNode::Call(self.token.string().to_string(), exprs)
+                }
                 return ExprNode::Var(self.token.string().to_string());
             },
 
