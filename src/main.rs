@@ -38,7 +38,7 @@ const INDENT : usize = 2;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    file: PathBuf,
+    file: String,
 
     #[clap(short = 'p', long = "parse", group = "action")]
     parse: bool,
@@ -100,7 +100,8 @@ fn main() {
 
          */
 
-        let mut file_path = args.file.deref();
+        let mut file_path = PathBuf::new();
+        file_path.push(args.file.deref());
         println!("Reading file from path: {:?}", file_path);
 
         let input = fs::read_to_string(&file_path)
