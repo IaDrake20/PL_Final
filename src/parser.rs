@@ -247,6 +247,48 @@ impl PrattParser {
                 node.push(right_denotation);
                 node
             }
+            Token::OP_EQ => {
+                let mut node = ParseTree::new(token.clone());
+                let right_denotation = self.pratt_driver(token.right_bp());
+                node.push(left_denotation);
+                node.push(right_denotation);
+                node
+            }
+            Token::OP_LT => {
+                let mut node = ParseTree::new(token.clone());
+                let right_denotation = self.pratt_driver(token.right_bp());
+                node.push(left_denotation);
+                node.push(right_denotation);
+                node
+            }
+            Token::OP_GT => {
+                let mut node = ParseTree::new(token.clone());
+                let right_denotation = self.pratt_driver(token.right_bp());
+                node.push(left_denotation);
+                node.push(right_denotation);
+                node
+            }
+            Token::OP_NEQ => {
+                let mut node = ParseTree::new(token.clone());
+                let right_denotation = self.pratt_driver(token.right_bp());
+                node.push(left_denotation);
+                node.push(right_denotation);
+                node
+            }
+            Token::OP_NLT => {
+                let mut node = ParseTree::new(token.clone());
+                let right_denotation = self.pratt_driver(token.right_bp());
+                node.push(left_denotation);
+                node.push(right_denotation);
+                node
+            }
+            Token::OP_NGT => {
+                let mut node = ParseTree::new(token.clone());
+                let right_denotation = self.pratt_driver(token.right_bp());
+                node.push(left_denotation);
+                node.push(right_denotation);
+                node
+            }
             Token::OP_SUB => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
