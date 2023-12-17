@@ -336,6 +336,9 @@ pub fn new(lexer: Lexer) -> DescentParser {
 }
 
     pub fn analyze(&mut self) {
+
+        println!("GOT THIS FAR!!");
+
         let mut program = ProgramNode::new();
         self.indent = 0;
         while self.peek(Token::KW_FUNC) {
