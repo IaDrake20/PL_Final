@@ -1,5 +1,8 @@
-for line in content.lines() {
-        if line.contains(&args.pattern) {
-        println!("{}", line);
-        }
-        }
+func factorial_recursion(n)
+[
+    if n < 2 [
+        return 1;
+    ] else [
+    return n * factorial_recursion(n-1);
+    ]
+]

@@ -147,103 +147,7 @@ func main(argc) [
 
 
  */
-fn grow_ast_program1() -> Rc<ProgramNode> {
-    let mut program = ProgramNode::new();
 
-    // global variables
-    let let_count = LetNode::new( "count".to_string(), Value::Nil);
-    program.let_nodes.push(Rc::new(let_count));
-
-    // func factorial_recursion()
-    let func_factorial_recursion = {
-        let mut params = vec![];
-        params.push(Parameter::new("n".to_string()));
-
-        let stmt_print = StmtNode::Print(PrintNode::new(
-            ExprNode::Var("n".to_string())
-        ));
-
-        let cond_if = ExprNode::LessThan(
-            Rc::new(ExprNode::Var("n".to_string())),
-            Rc::new( ExprNode::Val(Value::I32(2)))
-        );
-
-        let mut block_if_true = BlockNode::new();
-        block_if_true.statements.push(Rc::new(StmtNode::Return(
-            ReturnNode::new(ExprNode::Var("n".to_string()))
-        )));
-
-        let mut block_if_false = BlockNode::new();
-        block_if_false.statements.push( Rc::new(StmtNode::Return(
-            ReturnNode::new(ExprNode::Mul(
-                Rc::new(ExprNode::Var("n".to_string())),
-                Rc::new(ExprNode::Call(
-                    "factorial_recursion".to_string(),
-                    vec![Rc::new(ExprNode::Sub(
-                        Rc::new(ExprNode::Var("n".to_string())),
-                        Rc::new(ExprNode::Val(Value::I32(1)))
-                    ))]
-                ))
-            ))
-        )));
-
-        let stmt_if = StmtNode::If(
-            IfNode::new(cond_if, block_if_true, block_if_false)
-        );
-
-        let mut block = BlockNode::new();
-        block.statements.push(Rc::new(stmt_print));
-        block.statements.push(Rc::new(stmt_if));
-
-        FuncNode::new("factorial_recursion".to_string(), params, block)
-    };
-
-    // func factorial_recursion()
-    let func_main = {
-
-        let mut params = vec![];
-        params.push(Parameter::new("argc".to_string()));
-
-        let stmt_let = StmtNode::Let(LetNode::new(
-            "result".to_string(),
-            Value::Nil
-        ));
-
-        let stmt_assign = StmtNode::Assign(AssignNode::new(
-            "result".to_string(),
-            ExprNode::Call(
-                "factorial_recursion".to_string(),
-                vec![Rc::new(ExprNode::Val(Value::I32(5)))]
-            )
-        ));
-
-        let stmt_print = StmtNode::Print(PrintNode::new(
-            ExprNode::Var("result".to_string())
-        ));
-
-        let mut block = BlockNode::new();
-        block.statements.push(Rc::new(stmt_let));
-        block.statements.push(Rc::new(stmt_assign));
-        block.statements.push(Rc::new(stmt_print));
-
-        FuncNode::new("main".to_string(), params, block)
-    };
-
-    // add functions to program node
-    program.func_nodes.push(Rc::new(func_factorial_recursion));
-    program.func_nodes.push(Rc::new(func_main));
-
-    // wrap program node in reference counted pointer
-    Rc::new(program)
-}
-
-
-fn run0() {
-    let rc_program = grow_ast_program1();
-
-    let runtime = Machine::new(rc_program);
-    runtime.run();
-}
 //=======
 use crate::token::Token;
 use crate::lexer::Lexer;
@@ -274,7 +178,7 @@ fn main() {
     let input = fs::read_to_string(&file_path)
         .expect("Could not read the file");
 
-    println!("File contents:\n{}", input);
+    //println!("File contents:\n{}", input);
 
     {
         //let args = Cli::parse();
@@ -288,14 +192,13 @@ fn main() {
 
     let input = r#"
     
-    func add(a, b) [
-        return a + b;
-    ]
-
-    func main() [
-        x = 1;
-        y = 2;
-        print add(x, y);
+    func factorial_recursion(n)
+    [
+        if n < 2 [
+            return 1;
+        ] else [
+        return n * factorial_recursion(n-1);
+        ]
     ]
 
     "#;
