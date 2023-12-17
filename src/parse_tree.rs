@@ -148,7 +148,6 @@ impl ParseTree {
                 return ExprNode::Or(Rc::from(self.children[0].exprNode_grow()), Rc::from(self.children[1].exprNode_grow()));},
 
             Token::ID(_) => {
-                println!("blue {:?}", self.children.len());
                 if(self.children.len() > 0){
                     let mut exprs = vec![];
                     for n in 0..self.children[0].children.len(){
