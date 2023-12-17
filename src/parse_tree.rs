@@ -46,16 +46,16 @@ impl ParseTree {
         self.print_recursively(0);
     }
 
-    pub fn funcNode_grow(&self, mut program: ProgramNode){
+    pub fn funcNode_grow(&self) -> FuncNode{
         let mut parameters = vec![];
-        for n in 1..self.children[0].children.len() {
+        for n in 1..self.children[0].children.len(){
             parameters.push(Parameter::new(self.children[0].children[n].token.string().parse().unwrap()));
         }
 
         let mut block = BlockNode::new();
         let mut stmt: StmtNode;
 
-        for n in 1..self.children[1].children.len() {
+        for n in 0..self.children[1].children.len() - 1 {
             stmt = self.children[1].children[n].stmtNode_grow();
             block.statements.push(Rc::new(stmt));
         }
@@ -64,8 +64,8 @@ impl ParseTree {
             self.children[0].token.string().to_string(),
             parameters,
             block);
-
-        program.func_nodes.push(Rc::new(func));
+        
+        return func;
     }
 
     pub fn stmtNode_grow(&self) -> StmtNode {

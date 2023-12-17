@@ -16,12 +16,9 @@ impl Machine {
     }
 
     pub fn run(&self) {
-
         let analyzer = Analyzer::new(self.rc_program.clone());
         analyzer.analyze();
-
         let executor = Executor::new(self.rc_program.clone());
         executor.execute();
-
     }
 }

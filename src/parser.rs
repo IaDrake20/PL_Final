@@ -4,10 +4,13 @@ Implement the main parser using recursive descent. Use a Pratt parser for expres
 parsing. Optionally, add error localization and descriptions.
  */
 
-use crate::token::Token;
+use crate::machine::{self, Machine};
+use crate::token::{Token, self};
 use crate::lexer::Lexer;
 use crate::parse_tree::ParseTree;
-use std::env;
+use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
+use std::{env, string};
+use std::rc::Rc;
 use std::fs;
 use std::fs::File;
 use std::io::Read;
@@ -15,6 +18,8 @@ use std::io::Read;
 //use std::io::{self, Read};
 
 const INDENT : usize = 2;
+
+
 
 pub struct DescentParser {
     lexer: Lexer,
@@ -259,21 +264,28 @@ pub fn new(lexer: Lexer) -> DescentParser {
 }
 
     pub fn analyze(&mut self) {
+        let mut program = ProgramNode::new();
         self.indent = 0;
-        while true {
-            if self.peek(Token::KW_FUNC) {
-                self.tree = ParseTree::new(Token::KW_FUNC);
-                self.tree = self.parse_func(self.tree.clone());
-                self.tree.print();
-                // make call to transform function node into executables
-            }
-            if self.peek(Token::EOI) {
-                self.expect(Token::EOI);
-                self.tree = ParseTree::new(Token::EOI);
-                self.tree.print();
-                return;
-            }
+        while self.peek(Token::KW_FUNC) {
+            self.tree = ParseTree::new(Token::KW_FUNC);
+            self.tree = self.parse_func(self.tree.clone());
+            
+            // make call to transform function node into executables
+            
+            program.func_nodes.push(Rc::new(ParseTree::funcNode_grow(&self.tree)));
         }
+        if self.peek(Token::EOI) {
+            self.expect(Token::EOI);
+            self.tree = ParseTree::new(Token::EOI);
+
+            let rcProgram = Rc::new(program);
+            let machine = Machine::new(rcProgram);
+    
+            machine.run();
+
+            return;
+        }
+        
     }
 
     // parse_func  -> KW_FUNC ID() <parse_parameter_list> ARROW_R ID() <parse_block_nest>
@@ -349,7 +361,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
             }
             if self.peek(Token::id()) {
                 output.push(self.parse_expression());//IAN:Removed false from params
-                output.push(self.expect(Token::SEMICOLON));
+                self.expect(Token::SEMICOLON);
             }
         }
         output.push(self.expect(Token::BRACKET_R));
@@ -369,15 +381,20 @@ pub fn new(lexer: Lexer) -> DescentParser {
     // parse_expression -> (uses pratt parser to read expression)
     fn parse_expression(&mut self) -> ParseTree{
         let mut token_string : String = "".to_string();
-            while (self.curr() != Token::SEMICOLON) & (self.curr() != Token::BRACKET_L){
-                token_string.push_str(&(self.curr().string().to_string() + " "));
-                self.advance();
+        
+        while (self.curr() != Token::SEMICOLON) & (self.curr() != Token::BRACKET_L){
+            token_string.push_str(&(self.curr().string().to_string() + " "));
+            self.advance();
         }
         let token_str : &'static str = token_string.leak();
 
         let prattlexer = Lexer::new(token_str);
         let mut prattparser = PrattParser::new(prattlexer);
-        return prattparser.analyze();
+        let mut output =  prattparser.analyze();
+
+        output.push(ParseTree::new(Token::SEMICOLON));
+
+        return output;
 
     }
 
@@ -385,7 +402,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
     fn parse_if(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         self.advance();
-        output.push(self.parse_expression());//IAN: Removed false from params
+        output.push(self.parse_expression());
+        self.expect(Token::SEMICOLON);
         output.push(self.expect(Token::BRACKET_L));
         while ! self.peek(Token::BRACKET_R) {
             if self.peek(Token::LET) | self.peek(Token::RETURN){
@@ -404,8 +422,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
                 output.push(self.parse_while());
             }
             else if self.peek(Token::id()) {
-                output.push(self.parse_expression()); //IAN: removed the false from the params
-                output.push(self.expect(Token::SEMICOLON));
+                output.push(self.parse_expression());
+                self.expect(Token::SEMICOLON);
             }
         }
         output.push(self.expect(Token::BRACKET_R));
@@ -436,8 +454,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
                 output.push(self.parse_print());
             }
             else if self.peek(Token::id()) {
-                output.push(self.parse_expression());//IAN:removed false param
-                output.push(self.expect(Token::SEMICOLON));
+                output.push(self.parse_expression());
+                self.expect(Token::SEMICOLON);
             }
         }
         output.push(self.expect(Token::BRACKET_R));
@@ -472,8 +490,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
                     output.push(self.parse_print());
                 }
                 else if self.peek(Token::id()) {
-                    output.push(self.parse_expression());//IAN: removed false param
-                    output.push(self.expect(Token::SEMICOLON));
+                    output.push(self.parse_expression());
+                    self.expect(Token::SEMICOLON);
                 }
             }
             output.push(self.expect(Token::BRACKET_R));
@@ -485,8 +503,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
     fn parse_statement(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         self.advance();
-        output.push(self.parse_expression());//IAN: removed false param
-        output.push(self.expect(Token::SEMICOLON));
+        output.push(self.parse_expression());
+        self.expect(Token::SEMICOLON);
         return output;
     }
 
@@ -494,8 +512,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
     fn parse_print(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         self.advance();
-        output.push(self.parse_expression());//
-        output.push(self.expect(Token::SEMICOLON));
+        output.push(self.parse_expression());
+        self.expect(Token::SEMICOLON);
         return output;
     }
 }

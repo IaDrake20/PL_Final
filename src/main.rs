@@ -287,18 +287,29 @@ fn main() {
 
         /*
     let input = r#"
-    func main(a: int32 )
-    [
-        let sum : int32 = 42;
-        return sum;
+    
+    func add(a:i32,b:i32) [
+        return a + b;
     ]
+<<<<<<< Updated upstream
     "
      */
     }
+=======
+
+    func main() [
+        x = 1 + 1;
+        print x;
+    ]
+
+    "#;
+>>>>>>> Stashed changes
     
     // create recursive descent parser
     let lexer = Lexer::new(&input);
     let mut parser = DescentParser::new(lexer);
 
     parser.analyze();
+
+    
 }
