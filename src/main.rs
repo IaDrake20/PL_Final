@@ -253,22 +253,28 @@ const INDENT : usize = 2;
 
 fn main() {
 
-    let mut file_path:PathBuf = Default::default();
+    let mut file_path: PathBuf = Default::default();
+    let mut path = String::from("%USERPROFILE\\Documents\\Github\\PL_Final\\text.txt");
+
     if let Some(home_dir) = env::var_os("HOME") {
         file_path = PathBuf::from(home_dir);
-        file_path.push("text.txt");
-    }
-
-
-    if let Some(path_str) = file_path.to_str()
-    {
-        println!("Constructed file path: {}", path_str);
+        path = String::from("text.txt"); // Modify the filename
+    } else if let Some(userprofile) = env::var_os("USERPROFILE") {
+        file_path = PathBuf::from(userprofile);
+        path = String::from("Documents\\Github\\PL_Final\\text.txt"); // Modify the path and filename for Windows
     } else {
-        println!("Invalid file path");
+        println!("Home directory not found");
+        return;
     }
 
-    let input = fs::read_to_string(file_path)
-        .expect("Should have been able to read the file");
+    file_path.push(&path); // Append the modified path to file_path
+
+    println!("Reading file from path: {:?}", file_path);
+
+    let input = fs::read_to_string(&file_path)
+        .expect("Could not read the file");
+
+    println!("File contents:\n{}", input);
 
     {
         //let args = Cli::parse();
