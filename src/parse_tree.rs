@@ -50,7 +50,6 @@ impl ParseTree {
     pub fn funcNode_grow(&self) -> FuncNode{
         let mut parameters = vec![];
         for n in 1..self.children[0].children.len() - 1{
-            println!("{:?}", self.children[0].children[n].node_string());
             parameters.push(Parameter::new(self.children[0].children[n].token.string().parse().unwrap()));
         }
 
@@ -75,8 +74,28 @@ impl ParseTree {
             Token::RETURN => {
                 return StmtNode::Return(ReturnNode::new(self.children[0].exprNode_grow()));
             },
-            Token::IF => { todo!()},
-            Token::ELSE => {todo!()},
+            Token::IF => {
+                let mut trueBlock = BlockNode::new();
+                let mut falseBlock = BlockNode::new();
+                let mut stmt: StmtNode;
+
+                for mut n in 2..self.children.len(){
+                    if self.children[n].token == Token::BRACKET_R {
+                        break;
+                    } 
+                    else {
+                        stmt = self.children[n].stmtNode_grow();
+                        trueBlock.statements.push(Rc::new(stmt));
+                    }
+                }
+                
+                for mut n in 1..self.children[self.children.len() - 1].children.len() - 1 {
+                    stmt = self.children[self.children.len() - 1].children[n].stmtNode_grow();
+                    falseBlock.statements.push(Rc::new(stmt));
+                }
+                
+                return StmtNode::If(IfNode::new(self.children[0].exprNode_grow(), trueBlock, falseBlock));
+            },
             Token::WHILE => {todo!()},
             Token::PRINT => {
                 return StmtNode::Print(PrintNode::new(self.children[0].exprNode_grow()));

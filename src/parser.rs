@@ -119,32 +119,86 @@ impl PrattParser {
     }
 
     fn func_call(&mut self, token: Token) -> ParseTree {
-
         let mut output = ParseTree::new(self.current());
         self.advance();
         if self.peek(Token::PAREN_R) {
             return output;
         }
         if self.peek(Token::id()){
-            output.push(self.expect(Token::id()));
+            let mut token_string : String = "".to_string();
+            while (self.current() != Token::COMMA) & (self.current() != Token::PAREN_R){
+                token_string.push_str(&(self.current().string().to_string() + " "));
+                self.advance();
+            }
+            let token_str : &'static str = token_string.leak();
+
+            let prattlexer = Lexer::new(token_str);
+            let mut prattparser = PrattParser::new(prattlexer);
+            output.push(prattparser.analyze());
         }
         else if self.peek(Token::lit_i32()){
-            output.push(self.expect(Token::lit_i32()));
+            let mut token_string : String = "".to_string();
+            while (self.current() != Token::COMMA) & (self.current() != Token::PAREN_R){
+                token_string.push_str(&(self.current().string().to_string() + " "));
+                self.advance();
+            }
+            let token_str : &'static str = token_string.leak();
+
+            let prattlexer = Lexer::new(token_str);
+            let mut prattparser = PrattParser::new(prattlexer);
+            output.push(prattparser.analyze());
         }
         else if self.peek(Token::lit_f32()){
-            output.push(self.expect(Token::lit_f32()));
+            let mut token_string : String = "".to_string();
+            while (self.current() != Token::COMMA) & (self.current() != Token::PAREN_R){
+                token_string.push_str(&(self.current().string().to_string() + " "));
+                self.advance();
+            }
+            let token_str : &'static str = token_string.leak();
+
+            let prattlexer = Lexer::new(token_str);
+            let mut prattparser = PrattParser::new(prattlexer);
+            output.push(prattparser.analyze());
         }
         while self.accept(Token::COMMA) {
             if self.peek(Token::id()){
-                output.push(self.expect(Token::id()));
+                let mut token_string : String = "".to_string();
+                while (self.current() != Token::COMMA) & (self.current() != Token::PAREN_R){
+                    token_string.push_str(&(self.current().string().to_string() + " "));
+                    self.advance();
+                }
+                let token_str : &'static str = token_string.leak();
+    
+                let prattlexer = Lexer::new(token_str);
+                let mut prattparser = PrattParser::new(prattlexer);
+                output.push(prattparser.analyze());
             }
             else if self.peek(Token::lit_i32()){
-                output.push(self.expect(Token::lit_i32()));
+                let mut token_string : String = "".to_string();
+                while (self.current() != Token::COMMA) & (self.current() != Token::PAREN_R){
+                    token_string.push_str(&(self.current().string().to_string() + " "));
+                    self.advance();
+                }
+                let token_str : &'static str = token_string.leak();
+    
+                let prattlexer = Lexer::new(token_str);
+                let mut prattparser = PrattParser::new(prattlexer);
+                output.push(prattparser.analyze());
             }
             else if self.peek(Token::lit_f32()){
-                output.push(self.expect(Token::lit_f32()));
+                let mut token_string : String = "".to_string();
+                while (self.current() != Token::COMMA) & (self.current() != Token::PAREN_R){
+                    token_string.push_str(&(self.current().string().to_string() + " "));
+                    self.advance();
+                }
+                let token_str : &'static str = token_string.leak();
+    
+                let prattlexer = Lexer::new(token_str);
+                let mut prattparser = PrattParser::new(prattlexer);
+                output.push(prattparser.analyze());
             }
         }
+        
         return output;
         
     }
@@ -185,25 +239,25 @@ impl PrattParser {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_NOT => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::KW_FUNC => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_SUB => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(right_denotation);
-                node
+                return node;
             }
             //Token::OP_ADD => { todo!() }
             //Token::OP_ASSIGN => { todo!() }
@@ -224,98 +278,98 @@ impl PrattParser {
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::COLON => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_AND => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_OR => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_EQ => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_LT => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_GT => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_NEQ => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_NLT => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_NGT => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_SUB => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_DIV => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_MUL => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::OP_ASSIGN => {
                 let mut node = ParseTree::new(token.clone());
                 let right_denotation = self.pratt_driver(token.right_bp());
                 node.push(left_denotation);
                 node.push(right_denotation);
-                node
+                return node;
             }
             Token::EOI => { todo!() }
             _ => {
@@ -393,8 +447,8 @@ pub fn new(lexer: Lexer) -> DescentParser {
             self.expect(Token::EOI);
             self.tree = ParseTree::new(Token::EOI);
 
-            self.tree.print();
 
+            self.tree.print();
             let rcProgram = Rc::new(program);
             let machine = Machine::new(rcProgram);
     
@@ -523,7 +577,6 @@ pub fn new(lexer: Lexer) -> DescentParser {
         let mut output = ParseTree::new(self.curr());
         self.advance();
         output.push(self.parse_expression());
-        self.expect(Token::SEMICOLON);
         output.push(self.expect(Token::BRACKET_L));
         while ! self.peek(Token::BRACKET_R) {
             if self.peek(Token::LET) | self.peek(Token::RETURN){
@@ -549,6 +602,9 @@ pub fn new(lexer: Lexer) -> DescentParser {
             }
         }
         output.push(self.expect(Token::BRACKET_R));
+        if(self.peek(Token::ELSE)){
+            output.push(self.parse_else());
+        }
 
         return output;
     }
@@ -600,6 +656,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
             while ! self.peek(Token::BRACKET_R) {
                 if self.peek(Token::LET) | self.peek(Token::RETURN){
                     output.push(self.parse_statement());
+                    self.expect(Token::SEMICOLON);
                 }
                 else if self.peek(Token::WHILE) {
                     output.push(self.parse_while());

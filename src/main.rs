@@ -192,15 +192,18 @@ fn main() {
 
     let input = r#"
     
+    func main() [
+        print factorial_recursion(6);
+    ]
+    
     func factorial_recursion(n)
     [
         if n < 2 [
             return 1;
         ] else [
-        return n * factorial_recursion(n-1);
+            return n * factorial_recursion(n-1);
         ]
     ]
-
     "#;
     
     // create recursive descent parser
