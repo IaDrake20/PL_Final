@@ -1,10 +1,12 @@
 #![allow(non_snake_case)]
 
+use std::{env, fs};
 use std::rc::Rc;
 use crate::machine::Machine;
 use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
 use crate::value::Value;
 use clap::Parser;
+use std::path::PathBuf;
 
 mod tree;
 mod parse_tree;
@@ -251,30 +253,45 @@ const INDENT : usize = 2;
 
 fn main() {
 
-    let args = Cli::parse();
-    let content = std::fs::read_to_string(&args.path).expect("could not read file");
-
-    for line in content.lines() {
-        if line.contains(&args.pattern) {
-            println!("{}", line);
-        }
+    let mut file_path:PathBuf = Default::default();
+    if let Some(home_dir) = env::var_os("HOME") {
+        file_path = PathBuf::from(home_dir);
+        file_path.push("text.txt");
     }
 
-    // create a sequence of tokens that is assumed to
-    //   be output of the lexer
 
-    // create input for lexer
+    if let Some(path_str) = file_path.to_str()
+    {
+        println!("Constructed file path: {}", path_str);
+    } else {
+        println!("Invalid file path");
+    }
 
+    let input = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    {
+        //let args = Cli::parse();
+        //let content = std::fs::read_to_string(&args.path).expect("could not read file");
+
+        // create a sequence of tokens that is assumed to
+        //   be output of the lexer
+
+        // create input for lexer
+
+        /*
     let input = r#"
     func main(a: int32 )
     [
         let sum : int32 = 42;
         return sum;
     ]
-    "#;
+    "
+     */
+    }
     
     // create recursive descent parser
-    let lexer = Lexer::new(input);
+    let lexer = Lexer::new(&input);
     let mut parser = DescentParser::new(lexer);
 
     parser.analyze();

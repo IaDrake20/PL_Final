@@ -1,0 +1,5 @@
+for line in content.lines() {
+        if line.contains(&args.pattern) {
+        println!("{}", line);
+        }
+        }
