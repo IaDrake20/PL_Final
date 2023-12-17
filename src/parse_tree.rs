@@ -3,7 +3,7 @@
 use std::alloc::GlobalAlloc;
 use std::rc::{Rc, self};
 use clap::builder::NonEmptyStringValueParser;
-use rand::distributions::Exp;
+//use rand::distributions::Exp;
 
 use crate::token::{Token, self};
 use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
