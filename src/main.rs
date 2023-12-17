@@ -4,6 +4,7 @@ use std::{env, fs};
 use std::env::args;
 use std::error::Error;
 use std::fs::read_to_string;
+use std::ops::Deref;
 use std::rc::Rc;
 use crate::machine::Machine;
 use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
@@ -28,47 +29,6 @@ mod evaluator;
 mod parser;
 mod token;
 mod lexer;
-
-/*
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-    /// The path to the file to read
-    file: PathBuf,
-    /// Logging level
-    #[arg(short, long, default_value = "info", value_parser = vec![PossibleValue::new("info"), PossibleValue::new("debug"), PossibleValue::new("warn"), PossibleValue::new("none")], group = "action")]
-    loglevel: String,
-    tokenize: bool,
-    parse: bool,
-    execute: bool,
-}
-*/
-
-
-/*
-
-// The test AST corresponds to program0:
-
-let count;
-let help;
-
-func add(a,b) [
-    return a + b;
-]
-
-func main(argc) [
-    let sum;
-    sum = 3+(5+7);
-    print sum;
-    sum = add(sum, 1);
-    print sum;
-]
-
-
- */
-
-
-//=======
 use crate::token::Token;
 use crate::lexer::Lexer;
 use crate::parse_tree::ParseTree;
@@ -86,6 +46,17 @@ struct Cli {
     #[clap(short = 'e', long = "execute", group = "action")]
     execute: bool,
 
+    #[clap(short = 'r', long = "run", group = "action")]
+    run: bool,
+
+}
+
+enum Logger {
+    info(String),
+    debug,
+    warn,
+    none
+
 }
 
 fn main() {
@@ -98,5 +69,48 @@ fn main() {
         .arg(arg!(--one <VALUE>).required(false))
         .arg(arg!(--two <VALUE>).required(false))
         .get_matches();
+
+    let args = Cli::parse();
+    if args.parse {
+        println!("[ALERT] WIP");
+        println!("Parsing file: {:?}", args.file);
+    }
+
+    if args.execute {
+        println!("[ALERT] WIP");
+        println!("executing: {:?}", args.file);
+    }
+
+    if args.run {
+        println!("Running file: {:?}", args.file);
+        //let mut file_path: PathBuf = Default::default();
+        //let mut path = String::from("%USERPROFILE\\Documents\\Github\\PL_Final\\text.txt");
+
+        /*
+        if let Some(home_dir) = env::var_os("HOME") {
+            file_path = PathBuf::from(home_dir);
+            path = String::from("text.txt"); // Modify the filename
+        } else if let Some(userprofile) = env::var_os("USERPROFILE") {
+            file_path = PathBuf::from(userprofile);
+            path = String::from("Documents\\Github\\PL_Final\\text.txt"); // Modify the path and filename for Windows
+        } else {
+            println!("Home directory not found");
+            return;
+        }
+
+         */
+
+        let mut file_path = args.file.deref();
+        println!("Reading file from path: {:?}", file_path);
+
+        let input = fs::read_to_string(&file_path)
+            .expect("Could not read the file");
+
+        // create recursive descent parser
+        let lexer = Lexer::new(&input);
+        let mut parser = DescentParser::new(lexer);
+
+        parser.analyze();
+    }
 
 }
