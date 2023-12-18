@@ -1,6 +1,8 @@
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
+use tui::symbols::block;
+
 use crate::evaluator::Evaluator;
 use crate::frame::Frame;
 use crate::tree::{BlockNode, FuncNode, ProgramNode, StmtNode};
@@ -124,7 +126,7 @@ impl Executor {
                 rc_locals.borrow_mut().assign(name, value);
                 (Control::Next, Value::Nil)
             }
-            StmtNode::If(ifNode) => {
+            StmtNode::If(ifNode) => {               
                 println!("[debug] executing if statement");
                 let value_cond = Evaluator::evaluate(
                     ifNode.cond.clone(), rc_locals.clone());
@@ -138,6 +140,28 @@ impl Executor {
                     }
                 } else {
                     panic!("If-then-else statement condition must be of type boolean!");
+                }
+            }
+            StmtNode::While(whileNode) => {
+                println!("[debug] executing while statement");
+                let mut value_cond = Evaluator::evaluate(
+                    whileNode.cond.clone(), rc_locals.clone());
+                let mut output = (Control::Break, Value::Bool(true));
+
+                if let Value::Bool(mut b) = value_cond{
+                    while b {
+                        output = Self::execute_block_without_scope(
+                            whileNode.block_node_true.clone(), rc_locals.clone());
+
+                        value_cond = Evaluator::evaluate(
+                            whileNode.cond.clone(), rc_locals.clone());
+
+                        b = value_cond.unwrap();
+                    }
+                    
+                    return output;
+                } else {
+                    panic!("While statement condition must be of type boolean!");
                 }
             }
             StmtNode::Return(ret) => {

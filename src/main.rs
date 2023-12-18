@@ -58,7 +58,16 @@ fn main() {
     let args = Cli::parse();
     let cpy = args.file.clone();
 
-    let input = read_to_string(args.file).expect("Failed to read input file.");
+    let mut input = read_to_string(args.file).expect("Failed to read input file.");
+    while(input.contains('\n')) {
+        let index = input.find('\n');
+        input.remove(index.unwrap());
+    }
+    while(input.contains('\r')) {
+        let index = input.find('\r');
+        input.remove(index.unwrap());
+    }
+
     println!("{:?}", input);
 
     if args.parse {

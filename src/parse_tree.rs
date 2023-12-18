@@ -6,7 +6,7 @@ use clap::builder::NonEmptyStringValueParser;
 //use rand::distributions::Exp;
 
 use crate::token::{Token, self};
-use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
+use crate::tree::{AssignNode, BlockNode, ExprNode, FuncNode, IfNode, WhileNode, LetNode, Parameter, PrintNode, ProgramNode, ReturnNode, StmtNode};
 use crate::value::Value;
 use crate::evaluator::Evaluator;
 
@@ -96,28 +96,40 @@ impl ParseTree {
                 
                 return StmtNode::If(IfNode::new(self.children[0].exprNode_grow(), trueBlock, falseBlock));
             },
-            Token::WHILE => {todo!()},
+            Token::WHILE => {
+                let mut trueBlock = BlockNode::new();
+                let mut falseBlock = BlockNode::new();
+                let mut stmt: StmtNode;
+
+                for mut n in 2..self.children.len(){
+                    if self.children[n].token == Token::BRACKET_R {
+                        break;
+                    } 
+                    else {
+                        stmt = self.children[n].stmtNode_grow();
+                        trueBlock.statements.push(Rc::new(stmt));
+                    }
+                }
+                
+                if(self.children.len() > 0){
+                    if(self.children[self.children.len() - 1].children.len() > 0){
+                        for mut n in 1..self.children[self.children.len() - 1].children.len() - 1 {
+                            stmt = self.children[self.children.len() - 1].children[n].stmtNode_grow();
+                            falseBlock.statements.push(Rc::new(stmt));
+                        }
+                    }
+                }
+                
+                return StmtNode::While(WhileNode::new(self.children[0].exprNode_grow(), trueBlock));},
             Token::PRINT => {
                 return StmtNode::Print(PrintNode::new(self.children[0].exprNode_grow()));
             },
             Token::OP_ASSIGN => {
                 return StmtNode::Assign(AssignNode::new(self.children[0].token.string().parse::<String>().unwrap(), self.children[1].exprNode_grow()));
             },
-            Token::LET => {panic!()},
-
-                //return StmtNode::Let(LetNode::new((self.children[0].token.string() as str).parse().unwrap(), self.children[1].exprNode_grow() as Value));
-                
-                // current block: how to get relevant frame for use in the evaluator call
-/*
-{
-                return StmtNode::Let(
-                    LetNode::new(
-                        self.children[0].token.string().to_string(),
-                        Evaluator::evaluate(Rc::new(self.children[1].exprNode_grow()), FRAME GOES HERE)
-                    )
-                );
-            }
-*/
+            Token::LET => {
+                return StmtNode::Let(LetNode::new(self.children[0].token.string().to_string(),Value::Nil));
+            },
             _ => {panic!()}
         }
     }

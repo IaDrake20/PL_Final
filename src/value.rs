@@ -1,3 +1,4 @@
+use core::panic;
 use std::rc::Rc;
 use crate::tree::{FuncNode};
 
@@ -15,5 +16,14 @@ pub enum Value {
 impl Value {
     pub fn print(&self) {
         println!("{self:?}");
+    }
+
+    pub fn unwrap(&self) -> bool{
+        match self {
+            Value::Bool(b) => {
+                return *b;
+            },
+            _ => {panic!()}
+        }
     }
 }

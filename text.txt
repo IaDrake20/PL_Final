@@ -5,4 +5,24 @@ return 1;
 ] else [
 return n * factorial_recursion(n-1);
 ]
+<<<<<<< Updated upstream
+=======
+]
+func factorial_loop(n)
+[
+let p;
+p = n;
+while n > 1 [
+n = n - 1;
+p = p * n;
+]
+return p;
+]
+func main()
+[
+let n;
+n = 5;
+print factorial_loop(n);
+print factorial_recursion(n);
+>>>>>>> Stashed changes
 ]

@@ -77,6 +77,7 @@ pub enum StmtNode {
     If(IfNode),
     Return(ReturnNode),
     Print(PrintNode),
+    While(WhileNode),
 }
 
 
@@ -123,6 +124,21 @@ impl IfNode {
             cond: Rc::new(cond),
             block_node_true: Rc::new( block_node_true),
             block_node_false: Rc::new( block_node_false),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct WhileNode {
+    pub cond: Rc<ExprNode>,
+    pub block_node_true: Rc<BlockNode>,
+}
+
+impl WhileNode {
+    pub fn new(cond: ExprNode, block_node_true: BlockNode) -> WhileNode {
+        WhileNode {
+            cond: Rc::new(cond),
+            block_node_true: Rc::new( block_node_true),
         }
     }
 }

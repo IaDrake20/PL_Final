@@ -432,7 +432,10 @@ pub fn new(lexer: Lexer) -> DescentParser {
 }
 
     pub fn analyze(&mut self) {
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         let mut program = ProgramNode::new();
         self.indent = 0;
         while self.peek(Token::KW_FUNC) {
@@ -615,6 +618,7 @@ pub fn new(lexer: Lexer) -> DescentParser {
     fn parse_while(&mut self) -> ParseTree{
         let mut output = ParseTree::new(self.curr());
         self.advance();
+        output.push(self.parse_expression());
         output.push(self.expect(Token::BRACKET_L));
         while ! self.peek(Token::BRACKET_R) {
             if self.peek(Token::LET) | self.peek(Token::RETURN){
