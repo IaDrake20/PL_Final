@@ -77,15 +77,10 @@ fn main() {
         file_path.push(cpy.deref());
         //println!("Reading file from path: {:?}", file_path);
 
-        let input = fs::read_to_string(&file_path)
-            .expect("Could not read the file");
-
         // create recursive descent parser
         let lexer = Lexer::new(&input);
         let mut parser = DescentParser::new(lexer);
 
         parser.analyze();
-
-        println!("HIQFREFRNFBBWBEBVWTVBBTBVWTRBWRTBREWBBEBEBYEBTB");
     }
 }
