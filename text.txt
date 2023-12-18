@@ -5,8 +5,6 @@ return 1;
 ] else [
 return n * factorial_recursion(n-1);
 ]
-<<<<<<< Updated upstream
-=======
 ]
 func factorial_loop(n)
 [
@@ -24,5 +22,4 @@ let n;
 n = 5;
 print factorial_loop(n);
 print factorial_recursion(n);
->>>>>>> Stashed changes
 ]
